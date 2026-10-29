@@ -1,0 +1,817 @@
+/* Mosaic Voice phone. Tokens copied from mosaic.site. */
+
+:root {
+  --ink: #1d1d1f;
+  --graphite: #424245;
+  --slate: #6e6e73;
+  --silver: #86868b;
+  --line: #d2d2d7;
+  --hair: #e5e5ea;
+  --mist: #f5f5f7;
+  --snow: #fafafa;
+  --white: #ffffff;
+  --accent: #0071e3;
+  --accent-deep: #0050b3;
+  --accent-soft: #9dd3ff;
+  --emerald: #1d9367;
+  --amber: #b25e09;
+  --crimson: #a4234a;
+  --crimson-tint: #fbeff2;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  --font-brand: 'Playfair Display', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+}
+
+/* Base */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--mist);
+  letter-spacing: -0.003em;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+input {
+  font: inherit;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Layout frame */
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+.phone {
+  position: relative;
+  width: 390px;
+  max-width: 100%;
+  min-height: 844px;
+  display: flex;
+  flex-direction: column;
+  background: var(--white);
+  border: 1px solid var(--hair);
+  border-radius: 28px;
+  overflow: hidden;
+}
+
+@media (max-width: 480px) {
+  .app {
+    padding: 0;
+  }
+  .phone {
+    width: 100%;
+    min-height: 100vh;
+    border: 0;
+    border-radius: 0;
+  }
+}
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 24px 36px;
+}
+
+.screen--login {
+  padding: 64px 28px 28px;
+  gap: 32px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.row--between {
+  justify-content: space-between;
+}
+
+.row--center {
+  justify-content: center;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.stack--center {
+  align-items: center;
+}
+
+.push-down {
+  margin-top: auto;
+}
+
+/* Brand lockup */
+
+.brand {
+  display: flex;
+  align-items: center;
+}
+
+.brand__logo {
+  display: block;
+}
+
+.brand__name {
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.brand__voice {
+  font-family: var(--font-brand);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.brand--stacked {
+  gap: 18px;
+  justify-content: center;
+}
+
+.brand--stacked .brand__logo {
+  width: 88px;
+  height: 88px;
+}
+
+.brand--stacked .brand__words {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand--stacked .brand__name {
+  font-size: 52px;
+  letter-spacing: -0.022em;
+}
+
+.brand--stacked .brand__voice {
+  font-size: 49px;
+  margin-left: 86px;
+  margin-top: -8px;
+}
+
+.brand--inline {
+  gap: 14px;
+}
+
+.brand--inline .brand__logo {
+  width: 60px;
+  height: 60px;
+}
+
+.brand--inline .brand__words {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.brand--inline .brand__name {
+  font-size: 38px;
+  letter-spacing: -0.02em;
+}
+
+.brand--inline .brand__voice {
+  font-size: 38px;
+}
+
+/* Status pill */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: var(--mist);
+  max-width: 100%;
+}
+
+.pill__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--line);
+  flex-shrink: 0;
+}
+
+.pill__dot--registered {
+  background: var(--emerald);
+}
+
+.pill__dot--connecting {
+  background: var(--silver);
+}
+
+.pill__dot--error {
+  background: var(--crimson);
+}
+
+.pill__text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.pill__label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--slate);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Icon buttons */
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--mist);
+  color: var(--graphite);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background-color 120ms;
+}
+
+.icon-btn:hover:not(:disabled) {
+  background: var(--hair);
+}
+
+.icon-btn:disabled {
+  color: var(--line);
+}
+
+.icon-btn--plain {
+  background: transparent;
+  color: var(--silver);
+  width: 36px;
+}
+
+.icon-btn--plain:hover:not(:disabled) {
+  background: transparent;
+  color: var(--graphite);
+}
+
+.icon-row {
+  display: flex;
+  gap: 8px;
+}
+
+/* Forms */
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.lede {
+  margin: 0;
+  font-size: 14px;
+  color: var(--slate);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--graphite);
+}
+
+.field__label-note {
+  font-weight: 400;
+  color: var(--silver);
+}
+
+.field__input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--white);
+}
+
+.field__input::placeholder {
+  color: var(--silver);
+}
+
+.field__input--mono {
+  font-family: var(--font-mono);
+  font-size: 15px;
+}
+
+.field__help {
+  font-size: 12px;
+  color: var(--silver);
+}
+
+.field__help--mono {
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.btn-primary {
+  width: 100%;
+  height: 52px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--white);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: background-color 120ms;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-deep);
+}
+
+.btn-primary:disabled {
+  background: var(--hair);
+  color: var(--silver);
+}
+
+.btn-primary--small {
+  width: auto;
+  height: 40px;
+  padding: 0 18px;
+  font-size: 14px;
+  border-radius: 10px;
+}
+
+.btn-secondary {
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--mist);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-text {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 4px;
+}
+
+.footer-note {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--silver);
+  text-align: center;
+}
+
+/* Alerts */
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--crimson-tint);
+  color: var(--crimson);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.alert__close {
+  border: 0;
+  background: transparent;
+  color: var(--crimson);
+  padding: 0;
+  width: 24px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Dialer */
+
+.number-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.number-line__spacer {
+  width: 36px;
+  flex-shrink: 0;
+}
+
+.number-line__input {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: center;
+  font-weight: 300;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.number-line__input:focus-visible {
+  box-shadow: none;
+}
+
+.number-line__input::placeholder {
+  color: var(--silver);
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 14px 22px;
+  justify-content: center;
+}
+
+.keypad--compact {
+  gap: 10px;
+}
+
+.key {
+  width: 78px;
+  height: 78px;
+  border: 1px solid var(--hair);
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0;
+  transition: background-color 120ms;
+}
+
+.key:hover:not(:disabled) {
+  background: var(--snow);
+}
+
+.key:active:not(:disabled) {
+  background: var(--mist);
+}
+
+.key:disabled {
+  color: var(--line);
+}
+
+.key__digit {
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.key__letters {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--slate);
+  min-height: 12px;
+  line-height: 12px;
+}
+
+.key--compact {
+  width: 64px;
+  height: 64px;
+}
+
+.key--compact .key__digit {
+  font-size: 26px;
+}
+
+/* Action buttons (call, answer, decline, hang up) */
+
+.action-row {
+  display: flex;
+  justify-content: center;
+  gap: 88px;
+}
+
+.action-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.action {
+  width: 74px;
+  height: 74px;
+  border: 0;
+  border-radius: 50%;
+  color: var(--white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background-color 120ms, box-shadow 120ms;
+}
+
+.action--call {
+  width: 72px;
+  height: 72px;
+  background: var(--emerald);
+  box-shadow: 0 6px 18px rgba(29, 147, 103, 0.28);
+}
+
+.action--end {
+  background: var(--crimson);
+  box-shadow: 0 6px 18px rgba(164, 35, 74, 0.26);
+}
+
+.action--disabled,
+.action:disabled {
+  background: var(--hair);
+  color: var(--silver);
+  box-shadow: none;
+}
+
+.action__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--graphite);
+}
+
+/* In-call controls */
+
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.control {
+  width: 66px;
+  height: 66px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--mist);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background-color 120ms;
+}
+
+.control:hover {
+  background: var(--hair);
+}
+
+.control--on,
+.control--on:hover {
+  background: var(--ink);
+  color: var(--white);
+}
+
+.control__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--graphite);
+}
+
+/* Call screens */
+
+.call-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+}
+
+.eyebrow {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.avatar {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.avatar--incoming {
+  position: relative;
+  width: 136px;
+  height: 136px;
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  font-size: 54px;
+}
+
+.avatar--incoming::before,
+.avatar--incoming::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.avatar--incoming::before {
+  inset: -14px;
+  border: 1px solid var(--accent-soft);
+}
+
+.avatar--incoming::after {
+  inset: -30px;
+  border: 1px solid var(--hair);
+}
+
+.avatar--active {
+  width: 112px;
+  height: 112px;
+  background: var(--mist);
+  color: var(--graphite);
+  font-size: 44px;
+}
+
+.call-name {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.call-name--incoming {
+  font-size: 32px;
+}
+
+.call-uri {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--slate);
+}
+
+.call-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--slate);
+}
+
+.call-status__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.call-status--active {
+  color: var(--emerald);
+}
+
+.call-status--active .call-status__dot {
+  background: var(--emerald);
+}
+
+.call-status--held {
+  color: var(--amber);
+}
+
+.call-status--held .call-status__dot {
+  background: var(--amber);
+}
+
+.call-timer {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--graphite);
+}
+
+.tones {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  color: var(--graphite);
+  min-height: 22px;
+  text-align: center;
+}
+
+/* Transfer dialog */
+
+.dialog__backdrop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(29, 29, 31, 0.35);
+}
+
+.dialog {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  background: var(--white);
+  border: 1px solid var(--hair);
+  border-radius: 16px;
+}
+
+.dialog__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
