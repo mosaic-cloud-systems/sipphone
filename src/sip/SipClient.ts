@@ -196,15 +196,20 @@ export class SipClient {
   }
 
   private async stop(manager: Web.SessionManager, error?: string): Promise<void> {
+    const registered = manager === this.manager && this.state.registration === 'registered';
     if (manager === this.manager) {
       this.manager = undefined;
       this.session = undefined;
     }
     this.update({ registration: error ? 'error' : 'disconnected', error, call: IDLE_CALL });
-    try {
-      await manager.unregister();
-    } catch {
-      // Never registered, or the socket is already gone.
+    // Only a registered line needs an un-REGISTER. After a rejection, SessionManager
+    // would still send one, and with a bad password that is a second failed attempt.
+    if (registered) {
+      try {
+        await manager.unregister();
+      } catch {
+        // The socket is already gone.
+      }
     }
     try {
       await manager.disconnect();

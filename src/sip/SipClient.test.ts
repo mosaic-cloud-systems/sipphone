@@ -90,8 +90,17 @@ describe('SipClient', () => {
       registration: 'error',
       error: 'Registration rejected: 403 Forbidden',
     });
-    expect(manager().unregister).toHaveBeenCalled();
+    // It never registered, so an un-REGISTER would only be a second failed attempt.
+    expect(manager().unregister).not.toHaveBeenCalled();
     await vi.waitFor(() => expect(manager().disconnect).toHaveBeenCalled());
+  });
+
+  it('unregisters the line when disconnecting after a registration', async () => {
+    manager().delegate.onRegistered();
+    await client.disconnect();
+    expect(manager().unregister).toHaveBeenCalled();
+    expect(manager().disconnect).toHaveBeenCalled();
+    expect(client.getState().registration).toBe('disconnected');
   });
 
   it('dials numbers and extensions on the account domain', async () => {

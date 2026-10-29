@@ -30,6 +30,7 @@ import {
 } from '@mui/icons-material';
 import { SipClient, PhoneState } from '../sip/SipClient';
 import { hostOf, loadConfig, wazoWebSocketUrl } from '../sip/config';
+import { formatDuration } from './duration';
 
 const config = loadConfig(import.meta.env);
 const STORAGE_KEY = 'sipphone.account';
@@ -95,11 +96,6 @@ function saveAccount({ wsUrl, domain, username }: AccountForm): void {
   }
 }
 
-function formatDuration(ms: number): string {
-  const seconds = Math.floor(ms / 1000);
-  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
-}
-
 const REGISTRATION_TEXT: Record<PhoneState['registration'], string> = {
   disconnected: 'Offline',
   connecting: 'Connecting…',
@@ -138,6 +134,7 @@ const Phone: React.FC = () => {
   useEffect(() => {
     if (state.call.status === 'idle') setDtmfSent('');
     if (state.call.status !== 'active') return;
+    setNow(Date.now()); // the clock is stale from before the call was answered
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, [state.call.status]);
