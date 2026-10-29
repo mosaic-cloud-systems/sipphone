@@ -37,7 +37,7 @@ describe('resolveLogin', () => {
 describe('resolveAccount', () => {
   const form = { login: '1004@dave.mosaicvoice.net', password: 'p', wsUrl: '', domain: '' };
 
-  it('follows the login rule when the advanced fields are blank', () => {
+  it('follows the login rule when the overrides are blank', () => {
     expect(resolveAccount(form)).toEqual({
       username: 'dave-1004',
       domain: 'dave.mosaicvoice.net',
@@ -46,7 +46,7 @@ describe('resolveAccount', () => {
     });
   });
 
-  it('lets the advanced fields override the server and domain', () => {
+  it('lets the env overrides replace the server and domain', () => {
     expect(resolveAccount({ ...form, wsUrl: 'https://pbx.example.com:8443/', domain: 'x' })).toMatchObject({
       wsUrl: 'wss://pbx.example.com:8443/api/asterisk/ws',
       domain: 'x',
@@ -85,7 +85,7 @@ describe('loginErrorHint', () => {
     );
     expect(loginErrorHint('Registration rejected: 403 Forbidden')).toBeDefined();
     expect(loginErrorHint('WebSocket closed wss://x (code: 1006)')).toBe(
-      'The server could not be reached. Check the domain in the username, or the server under Advanced.',
+      'The server could not be reached. Check the domain in the username.',
     );
     expect(loginErrorHint('Something else')).toBeUndefined();
   });

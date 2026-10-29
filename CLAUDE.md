@@ -49,7 +49,8 @@ PBX. Read README.md for setup and scope. The design and mockup link are in
   turns it into the shared edge `sip.mosaicvoice.net`, the realm, and the line
   name `<slug>-<ext>` (the naming rule the Mosaic Voice API follows when it
   creates lines). Any other domain is a plain Wazo host. Server and SIP domain
-  overrides sit under Advanced on the login page.
+  overrides exist only as `VITE_SIP_WS_URL` / `VITE_SIP_DOMAIN`; the login
+  page has no fields for them.
 
 ## Testing limits
 

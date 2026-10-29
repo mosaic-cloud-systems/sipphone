@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Brand from './Brand';
 import { CloseIcon } from './icons';
 import { describeLogin, isComplete, loginErrorHint, type AccountForm } from './account';
-import { wazoWebSocketUrl } from '../sip/config';
 
 interface LoginProps {
   form: AccountForm;
@@ -27,8 +26,6 @@ const Login: React.FC<LoginProps> = ({
   onDismissError,
 }) => {
   const ready = !connecting && isComplete(form);
-  // Advanced opens by itself when an override is already set.
-  const [advanced, setAdvanced] = useState(() => Boolean(form.wsUrl || form.domain));
   const hint = error ? loginErrorHint(error) : undefined;
   const set = (key: keyof AccountForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
     onChange({ ...form, [key]: e.target.value });
@@ -100,44 +97,6 @@ const Login: React.FC<LoginProps> = ({
             Never saved. The username is remembered in this browser.
           </span>
         </div>
-
-        <details className="disclosure" open={advanced} onToggle={(e) => setAdvanced(e.currentTarget.open)}>
-          <summary className="disclosure__summary">Advanced</summary>
-          <div className="stack" style={{ gap: 18, marginTop: 14 }}>
-            <div className="field">
-              <label className="field__label" htmlFor="login-server">
-                Server <span className="field__label-note">(blank follows the username)</span>
-              </label>
-              <input
-                id="login-server"
-                className="field__input field__input--mono"
-                type="text"
-                autoCapitalize="none"
-                spellCheck={false}
-                value={form.wsUrl}
-                onChange={set('wsUrl')}
-              />
-              {form.wsUrl.trim() && (
-                <span className="field__help field__help--mono">{wazoWebSocketUrl(form.wsUrl)}</span>
-              )}
-            </div>
-
-            <div className="field">
-              <label className="field__label" htmlFor="login-domain">
-                SIP domain <span className="field__label-note">(blank follows the username)</span>
-              </label>
-              <input
-                id="login-domain"
-                className="field__input field__input--mono"
-                type="text"
-                autoCapitalize="none"
-                spellCheck={false}
-                value={form.domain}
-                onChange={set('domain')}
-              />
-            </div>
-          </div>
-        </details>
 
         <button type="submit" className="btn-primary" style={{ marginTop: 10 }} disabled={!ready}>
           {connecting ? 'Connecting…' : 'Login'}

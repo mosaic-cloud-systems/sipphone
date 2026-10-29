@@ -994,30 +994,7 @@ input:focus-visible {
   color: var(--slate);
 }
 
-/* Sign-in: advanced disclosure and error hint */
-
-.disclosure__summary {
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--accent);
-  list-style: none;
-}
-
-.disclosure__summary::-webkit-details-marker {
-  display: none;
-}
-
-.disclosure__summary::before {
-  content: '▸';
-  display: inline-block;
-  width: 14px;
-  color: var(--silver);
-}
-
-.disclosure[open] > .disclosure__summary::before {
-  content: '▾';
-}
+/* Sign-in: error hint */
 
 .alert__hint {
   display: block;

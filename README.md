@@ -34,9 +34,10 @@ customer's SIP realm. The phone works the rest out itself: it connects to the
 shared edge `sip.mosaicvoice.net` and registers as `dave-1004` (line names must
 be unique across customers, so the realm's first label is part of the name).
 Any other domain, say `alice@wazo.example.com`, is treated as a plain Wazo host
-and registers as `alice` there. **Advanced** hides a Server and SIP domain
-override for odd setups. The username and overrides are remembered in this
-browser; the password never is.
+and registers as `alice` there. For a setup where the WebSocket host and the
+realm differ, set the overrides in `.env.local` (see `.env.example`); there
+are no fields for them. The username is remembered in this browser; the
+password never is.
 
 To point the phone at a plain Wazo instead, type its host as the server, or
 set `VITE_WAZO_HOST` in `.env.local` so it is prefilled.

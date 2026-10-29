@@ -6,9 +6,9 @@ export interface AccountForm {
   /** "1004@dave.mosaicvoice.net", or "alice@wazo.example.com" for a plain Wazo. */
   login: string;
   password: string;
-  /** Advanced: server host or ws(s):// URL. Blank follows the login rule. */
+  /** Override from the env file: server host or ws(s):// URL. Blank follows the login rule. */
   wsUrl: string;
-  /** Advanced: SIP domain. Blank follows the login rule. */
+  /** Override from the env file: SIP domain. Blank follows the login rule. */
   domain: string;
 }
 
@@ -48,7 +48,7 @@ export function isComplete(form: AccountForm): boolean {
   return Boolean(resolveLogin(form.login) && form.password);
 }
 
-/** The account the SIP client connects with: the login rule, then the advanced overrides. */
+/** The account the SIP client connects with: the login rule, then the env overrides. */
 export function resolveAccount(form: AccountForm): SipAccount | undefined {
   const resolved = resolveLogin(form.login);
   if (!resolved) return undefined;
@@ -77,30 +77,25 @@ export function loginErrorHint(error: string): string | undefined {
     return 'The username or password was not accepted. The server does not say which; passwords are case-sensitive.';
   }
   if (/^WebSocket closed\b|^WebSocket error\b|Unable to connect/i.test(error)) {
-    return 'The server could not be reached. Check the domain in the username, or the server under Advanced.';
+    return 'The server could not be reached. Check the domain in the username.';
   }
   return undefined;
 }
 
-/** The remembered login and advanced fields, with the config as defaults. */
+/** The remembered login, with the config's login as the default; overrides come from the config only. */
 export function savedAccount(config: PhoneConfig): AccountForm {
   const defaults: AccountForm = { login: config.login, wsUrl: config.wsUrl, domain: config.domain, password: '' };
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as Partial<AccountForm>;
-    return {
-      login: typeof saved.login === 'string' ? saved.login : defaults.login,
-      wsUrl: typeof saved.wsUrl === 'string' ? saved.wsUrl : defaults.wsUrl,
-      domain: typeof saved.domain === 'string' ? saved.domain : defaults.domain,
-      password: '',
-    };
+    return { ...defaults, login: typeof saved.login === 'string' ? saved.login : defaults.login };
   } catch {
     return defaults;
   }
 }
 
-export function saveAccount({ login, wsUrl, domain }: AccountForm): void {
+export function saveAccount({ login }: AccountForm): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ login, wsUrl, domain }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ login }));
   } catch {
     // Storage blocked (private window): the form just won't be prefilled next time.
   }
