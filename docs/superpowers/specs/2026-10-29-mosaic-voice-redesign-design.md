@@ -18,8 +18,9 @@ like part of that product when it is.
 ## Goals
 
 - Every screen reads as Mosaic: same type, colours and restraint as mosaic.site.
-- Login asks only for what Mosaic Voice needs: username, password, SIP domain
-  (defaulting to `sip.mosaicvoice.net`).
+- Login asks only for what is needed to reach the right line: username,
+  password, server (the WebSocket host) and SIP domain, the last two
+  defaulting to `sip.mosaicvoice.net`.
 - Each screen matches its mockup closely enough that a side-by-side comparison
   shows the same layout, type sizes, colours and controls.
 - The dialled number never wraps; it shrinks as it gets longer.
@@ -271,8 +272,10 @@ the server field from the sign-in description.
   SIP test assertion is unchanged (one assertion for `remoteUri` is added).
 - Each of the four mocked screens, opened at 390 px wide, matches its artboard
   in layout, sizes, colours and copy.
-- A 16-character number fits on one line at 30 px; a 24-character one at
-  20 px; neither wraps.
-- Tab order on the login page is username, password, domain, Login; every
-  icon button has an `aria-label`.
+- The dialled number never wraps. The length rule gives the largest size to
+  try; the size steps down (36, 30, 24, 20 px) until the number fits the
+  field, and one that is still too wide at 20 px is left-aligned and scrolled
+  to its end.
+- Tab order on the login page is username, password, server, domain, Login;
+  every icon button has an `aria-label`.
 - The bundle contains no MUI or Emotion code.

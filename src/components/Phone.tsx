@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { SipClient, type PhoneState } from '../sip/SipClient';
 import { loadConfig } from '../sip/config';
 import { resolveAccount, saveAccount, savedAccount, type AccountForm } from './account';
+import { screenFor, visibleError } from './screen';
 import Login from './Login';
 import Dialer from './Dialer';
 import CallScreen from './CallScreen';
@@ -21,6 +22,7 @@ const Phone: React.FC = () => {
   const [loginOpen, setLoginOpen] = useState(true);
   const [number, setNumber] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
+  const [dismissedError, setDismissedError] = useState<string | undefined>();
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => client.subscribe(setState), [client]);
@@ -65,16 +67,21 @@ const Phone: React.FC = () => {
   });
 
   const { registration } = state;
-  const dismissError = () => setActionError(null);
+  const error = visibleError({ actionError, stateError: state.error, dismissed: dismissedError });
+  const dismissError = () => {
+    setActionError(null);
+    setDismissedError(state.error);
+  };
+  const screen = screenFor({ loginOpen, callStatus: state.call.status });
 
-  if (loginOpen) {
+  if (screen === 'login') {
     return (
       <Login
         form={form}
         onChange={setForm}
         onSubmit={() => void handleConnect()}
         connecting={registration === 'connecting'}
-        error={actionError ?? state.error}
+        error={error}
         onDismissError={dismissError}
         canClose={registration === 'registered'}
         onClose={() => setLoginOpen(false)}
@@ -82,9 +89,7 @@ const Phone: React.FC = () => {
     );
   }
 
-  const screenError = actionError ?? state.error ?? null;
-
-  if (state.call.status === 'idle') {
+  if (screen === 'dialer') {
     return (
       <Dialer
         state={state}
@@ -94,7 +99,7 @@ const Phone: React.FC = () => {
         onCall={() => void handleCall()}
         onOpenAccount={() => setLoginOpen(true)}
         onDisconnect={() => void run(() => client.disconnect())()}
-        error={screenError}
+        error={error}
         onDismissError={dismissError}
       />
     );
@@ -112,7 +117,7 @@ const Phone: React.FC = () => {
       onToggleHold={() => void run(() => client.toggleHold())()}
       onDtmf={(key) => void run(() => client.sendDtmf(key))()}
       onTransfer={(target) => run(() => client.transfer(target))()}
-      error={screenError}
+      error={error}
       onDismissError={dismissError}
     />
   );

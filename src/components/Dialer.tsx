@@ -3,7 +3,7 @@ import Brand from './Brand';
 import StatusPill from './StatusPill';
 import Keypad from './Keypad';
 import { BackspaceIcon, CloseIcon, LogoutIcon, PhoneIcon, SlidersIcon } from './icons';
-import { numberFontSize } from './numberSize';
+import { numberFontSize, shrinkToFit } from './numberSize';
 import type { PhoneState } from '../sip/SipClient';
 
 interface DialerProps {
@@ -32,16 +32,24 @@ const Dialer: React.FC<DialerProps> = ({
   const registered = state.registration === 'registered';
   const canCall = registered && number.trim().length > 0;
   const input = useRef<HTMLInputElement>(null);
+  const [fontSize, setFontSize] = useState(() => numberFontSize(number));
   const [overflowing, setOverflowing] = useState(false);
 
-  // A number wider than the field even at the smallest size is left-aligned and
-  // kept scrolled to its end, so the most recent digits stay visible. Measured
-  // again once the web fonts are in, since they change the width.
+  // The length rule gives an upper size; the real width decides. The size steps
+  // down until the number fits. One that is still too wide at the smallest size
+  // is left-aligned and kept scrolled to its end, so the latest digits show.
+  // Measured again once the web fonts are in, since they change the width.
   useEffect(() => {
     const measure = () => {
       const el = input.current;
       if (!el) return;
-      setOverflowing(el.scrollWidth > el.clientWidth);
+      const fits = (size: number) => {
+        el.style.fontSize = `${size}px`;
+        return el.scrollWidth <= el.clientWidth;
+      };
+      const size = shrinkToFit(numberFontSize(number), fits);
+      setFontSize(size);
+      setOverflowing(!fits(size));
       el.scrollLeft = el.scrollWidth;
     };
     measure();
@@ -91,7 +99,7 @@ const Dialer: React.FC<DialerProps> = ({
           autoComplete="off"
           spellCheck={false}
           value={number}
-          style={{ fontSize: numberFontSize(number) }}
+          style={{ fontSize }}
           onChange={(e) => onNumberChange(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && canCall) onCall();
