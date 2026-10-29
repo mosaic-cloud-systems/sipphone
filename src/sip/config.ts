@@ -43,6 +43,9 @@ export function hostOf(value: string): string {
  */
 export function wazoWebSocketUrl(hostOrUrl: string): string {
   const value = hostOrUrl.trim();
+  // A ws(s):// URL is kept as typed, unless it names no path: the Wazo path
+  // is then added, as the edge answers 404 at "/".
+  if (/^wss?:\/\/[^/]+\/?$/i.test(value)) return `${value.replace(/\/$/, '')}/api/asterisk/ws`;
   if (/^wss?:\/\//i.test(value)) return value;
   const host = value.replace(/^https?:\/\//i, '').replace(/[/?#].*$/, '');
   return host ? `wss://${host}/api/asterisk/ws` : '';

@@ -85,7 +85,7 @@ export class SipClient {
         authorizationUsername: account.username,
         authorizationPassword: account.password,
         logBuiltinEnabled: this.options.traceSip,
-        transportOptions: { traceSip: this.options.traceSip },
+        transportOptions: { server: account.wsUrl, traceSip: this.options.traceSip },
         sessionDescriptionHandlerFactoryOptions: {
           peerConnectionConfiguration: { iceServers: this.options.iceServers },
         },

@@ -12,8 +12,14 @@ describe('wazoWebSocketUrl', () => {
     );
   });
 
-  it('returns a ws:// or wss:// URL unchanged', () => {
+  it('returns a ws:// or wss:// URL with a path unchanged', () => {
     expect(wazoWebSocketUrl('wss://pbx.example.com/ws')).toBe('wss://pbx.example.com/ws');
+  });
+
+  it('adds the Wazo path to a wss:// URL that has none', () => {
+    // The edge answers 404 at "/" and the browser closes the socket with code 1006.
+    expect(wazoWebSocketUrl('wss://sip.mosaicvoice.net')).toBe('wss://sip.mosaicvoice.net/api/asterisk/ws');
+    expect(wazoWebSocketUrl('wss://sip.mosaicvoice.net/')).toBe('wss://sip.mosaicvoice.net/api/asterisk/ws');
   });
 
   it('returns empty for an empty host', () => {

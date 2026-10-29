@@ -87,6 +87,13 @@ describe('SipClient', () => {
     expect(client.getState().registration).toBe('registered');
   });
 
+  it('puts the WebSocket URL in the transport options it passes to SIP.js', () => {
+    // SessionManager only uses its server argument when no transportOptions are
+    // given. The client passes transportOptions (for traceSip), so the URL has to
+    // be inside them, or the transport throws "Invalid WebSocket Server URL".
+    expect(manager().options.userAgentOptions.transportOptions).toMatchObject({ server: account.wsUrl });
+  });
+
   it('stops after a rejected registration instead of retrying', async () => {
     manager().registerOptions.requestDelegate!.onReject!({
       message: { statusCode: 403, reasonPhrase: 'Forbidden' },
