@@ -3,7 +3,9 @@ import Brand from './Brand';
 import StatusPill from './StatusPill';
 import Keypad from './Keypad';
 import { BackspaceIcon, CloseIcon, LogoutIcon, PhoneIcon, SlidersIcon } from './icons';
+import RecentsList from './RecentsList';
 import { numberFontSize, shrinkToFit } from './numberSize';
+import type { CallEntry, DialerTab } from './recents';
 import type { PhoneState } from '../sip/SipClient';
 
 interface DialerProps {
@@ -16,6 +18,14 @@ interface DialerProps {
   onDisconnect: () => void;
   error?: string | null;
   onDismissError: () => void;
+  tab: DialerTab;
+  onTabChange: (tab: DialerTab) => void;
+  entries: CallEntry[];
+  /** Missed calls since the Recents tab was last opened; shown as a badge. */
+  missedCount: number;
+  now: number;
+  onCallEntry: (number: string) => void;
+  onClearRecents: () => void;
 }
 
 const Dialer: React.FC<DialerProps> = ({
@@ -28,6 +38,13 @@ const Dialer: React.FC<DialerProps> = ({
   onDisconnect,
   error,
   onDismissError,
+  tab,
+  onTabChange,
+  entries,
+  missedCount,
+  now,
+  onCallEntry,
+  onClearRecents,
 }) => {
   const registered = state.registration === 'registered';
   const canCall = registered && number.trim().length > 0;
@@ -54,7 +71,20 @@ const Dialer: React.FC<DialerProps> = ({
     };
     measure();
     void document.fonts?.ready.then(measure);
-  }, [number]);
+  }, [number, tab]);
+
+  const tabButton = (value: DialerTab, label: string, badge?: number) => (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={tab === value}
+      className={`segmented__tab${tab === value ? ' segmented__tab--on' : ''}`}
+      onClick={() => onTabChange(value)}
+    >
+      {label}
+      {badge ? <span className="badge">{badge}</span> : null}
+    </button>
+  );
 
   return (
     <div className="screen">
@@ -87,50 +117,61 @@ const Dialer: React.FC<DialerProps> = ({
         </div>
       )}
 
-      <div className="number-line" style={{ marginTop: 40 }}>
-        <span className="number-line__spacer" aria-hidden="true" />
-        <input
-          ref={input}
-          className={`number-line__input${overflowing ? ' number-line__input--overflow' : ''}`}
-          type="text"
-          inputMode="tel"
-          aria-label="Number"
-          placeholder="Extension or number"
-          autoComplete="off"
-          spellCheck={false}
-          value={number}
-          style={{ fontSize }}
-          onChange={(e) => onNumberChange(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && canCall) onCall();
-          }}
-        />
-        {number ? (
-          <button
-            type="button"
-            className="icon-btn icon-btn--plain"
-            aria-label="Delete last digit"
-            onClick={() => onNumberChange(number.slice(0, -1))}
-          >
-            <BackspaceIcon />
-          </button>
-        ) : (
-          <span className="number-line__spacer" aria-hidden="true" />
-        )}
+      <div role="tablist" aria-label="Dialer view" className="segmented" style={{ marginTop: 24 }}>
+        {tabButton('keypad', 'Keypad')}
+        {tabButton('recents', 'Recents', missedCount)}
       </div>
 
-      <div className="push-down stack stack--center" style={{ gap: 28 }}>
-        <Keypad onKey={(key) => onNumberChange(number + key)} />
-        <button
-          type="button"
-          className="action action--call"
-          aria-label="Call"
-          disabled={!canCall}
-          onClick={onCall}
-        >
-          <PhoneIcon />
-        </button>
-      </div>
+      {tab === 'recents' ? (
+        <RecentsList entries={entries} now={now} canCall={registered} onCall={onCallEntry} onClear={onClearRecents} />
+      ) : (
+        <>
+          <div className="number-line" style={{ marginTop: 40 }}>
+            <span className="number-line__spacer" aria-hidden="true" />
+            <input
+              ref={input}
+              className={`number-line__input${overflowing ? ' number-line__input--overflow' : ''}`}
+              type="text"
+              inputMode="tel"
+              aria-label="Number"
+              placeholder="Extension or number"
+              autoComplete="off"
+              spellCheck={false}
+              value={number}
+              style={{ fontSize }}
+              onChange={(e) => onNumberChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && canCall) onCall();
+              }}
+            />
+            {number ? (
+              <button
+                type="button"
+                className="icon-btn icon-btn--plain"
+                aria-label="Delete last digit"
+                onClick={() => onNumberChange(number.slice(0, -1))}
+              >
+                <BackspaceIcon />
+              </button>
+            ) : (
+              <span className="number-line__spacer" aria-hidden="true" />
+            )}
+          </div>
+
+          <div className="push-down stack stack--center" style={{ gap: 28 }}>
+            <Keypad onKey={(key) => onNumberChange(number + key)} />
+            <button
+              type="button"
+              className="action action--call"
+              aria-label="Call"
+              disabled={!canCall}
+              onClick={onCall}
+            >
+              <PhoneIcon />
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };
