@@ -1,5 +1,20 @@
-import { describe, expect, it } from 'vitest';
-import { addEntry, ariaLabel, entryFor, isMissed, rowText, unseenMissed, whenLabel, type CallEntry } from './recents';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import {
+  TAB_KEY,
+  addEntry,
+  ariaLabel,
+  entryFor,
+  isMissed,
+  loadRecents,
+  loadTab,
+  recentsKey,
+  rowText,
+  saveRecents,
+  saveTab,
+  unseenMissed,
+  whenLabel,
+  type CallEntry,
+} from './recents';
 
 const base = { status: 'idle' as const, muted: false, held: false };
 
@@ -110,5 +125,56 @@ describe('ariaLabel', () => {
     expect(ariaLabel(outbound({ number: '7000', answered: true, duration: 65, start: yesterday(9, 0) }), now)).toBe('Call 7000, outgoing call yesterday at 09:00, 1 minute 5 seconds');
     expect(ariaLabel(outbound({ number: '1001', start: oct27 }), now)).toBe('Call 1001, outgoing call on Oct 27, not answered');
     expect(ariaLabel(inbound({ number: '1003', answered: true, duration: 58, start: t(9, 30) }), now)).toBe('Call 1003, incoming call today at 09:30, 58 seconds');
+  });
+});
+
+function fakeStorage(broken = false): Storage {
+  const map = new Map<string, string>();
+  const fail = () => {
+    throw new Error('blocked');
+  };
+  return {
+    getItem: broken ? fail : (k: string) => map.get(k) ?? null,
+    setItem: broken ? fail : (k: string, v: string) => void map.set(k, v),
+    removeItem: (k: string) => void map.delete(k),
+  } as unknown as Storage;
+}
+
+describe('storage', () => {
+  beforeEach(() => {
+    Object.defineProperty(globalThis, 'localStorage', { value: fakeStorage(), configurable: true });
+  });
+  afterEach(() => {
+    delete (globalThis as { localStorage?: Storage }).localStorage;
+  });
+
+  it('round-trips entries and the seen marker per account', () => {
+    saveRecents(recentsKey('t1004@test.mosaicvoice.net'), { entries: [sample], seenAt: 42 });
+    expect(loadRecents(recentsKey('t1004@test.mosaicvoice.net'))).toEqual({ entries: [sample], seenAt: 42 });
+    expect(loadRecents(recentsKey('t1003@test.mosaicvoice.net'))).toEqual({ entries: [], seenAt: 0 });
+    expect(recentsKey('t1004@test.mosaicvoice.net')).toBe('sipphone.recents.t1004@test.mosaicvoice.net');
+  });
+
+  it('reads a corrupt value as an empty list', () => {
+    localStorage.setItem(recentsKey('a@b'), '{not json');
+    expect(loadRecents(recentsKey('a@b'))).toEqual({ entries: [], seenAt: 0 });
+    localStorage.setItem(recentsKey('a@b'), JSON.stringify({ entries: [{ bogus: 1 }, sample], seenAt: 'x' }));
+    expect(loadRecents(recentsKey('a@b'))).toEqual({ entries: [sample], seenAt: 0 });
+  });
+
+  it('survives a blocked store', () => {
+    Object.defineProperty(globalThis, 'localStorage', { value: fakeStorage(true), configurable: true });
+    expect(loadRecents('k')).toEqual({ entries: [], seenAt: 0 });
+    expect(() => saveRecents('k', { entries: [], seenAt: 0 })).not.toThrow();
+    expect(loadTab()).toBe('keypad');
+    expect(() => saveTab('recents')).not.toThrow();
+  });
+
+  it('remembers the dialer tab', () => {
+    expect(loadTab()).toBe('keypad');
+    saveTab('recents');
+    expect(loadTab()).toBe('recents');
+    localStorage.setItem(TAB_KEY, 'nonsense');
+    expect(loadTab()).toBe('keypad');
   });
 });

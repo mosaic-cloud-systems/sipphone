@@ -113,3 +113,59 @@ export function ariaLabel(entry: CallEntry, now: number): string {
   else if (entry.direction === 'outbound') tail = ', not answered';
   return `Call ${entry.name ?? entry.number}, ${kind} ${when}${tail}`;
 }
+
+// Persistence: one store per account in this browser, plus the chosen dialer tab.
+// A blocked or corrupt store reads as empty and never throws.
+
+export interface RecentsStore {
+  entries: CallEntry[];
+  /** When the user last opened the Recents tab, in epoch milliseconds; 0 = never. */
+  seenAt: number;
+}
+
+export type DialerTab = 'keypad' | 'recents';
+export const TAB_KEY = 'sipphone.dialerTab';
+
+export function recentsKey(accountLabel: string): string {
+  return `sipphone.recents.${accountLabel}`;
+}
+
+function isEntry(value: unknown): value is CallEntry {
+  return typeof value === 'object' && value !== null && typeof (value as CallEntry).number === 'string';
+}
+
+export function loadRecents(key: string): RecentsStore {
+  try {
+    const raw = JSON.parse(localStorage.getItem(key) ?? '{}') as Partial<RecentsStore>;
+    return {
+      entries: Array.isArray(raw.entries) ? raw.entries.filter(isEntry) : [],
+      seenAt: typeof raw.seenAt === 'number' ? raw.seenAt : 0,
+    };
+  } catch {
+    return { entries: [], seenAt: 0 };
+  }
+}
+
+export function saveRecents(key: string, store: RecentsStore): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(store));
+  } catch {
+    // Storage blocked (private window): the list just won't survive a reload.
+  }
+}
+
+export function loadTab(): DialerTab {
+  try {
+    return localStorage.getItem(TAB_KEY) === 'recents' ? 'recents' : 'keypad';
+  } catch {
+    return 'keypad';
+  }
+}
+
+export function saveTab(tab: DialerTab): void {
+  try {
+    localStorage.setItem(TAB_KEY, tab);
+  } catch {
+    // As above.
+  }
+}
