@@ -1,6 +1,7 @@
 // Phone settings from VITE_* environment variables (see .env.example).
 // Vite builds these values into the page's JavaScript, so a SIP password
 // never belongs here: the user types it into the sign-in dialog.
+// With nothing set, the phone talks to the Mosaic Voice edge.
 
 export interface PhoneConfig {
   wsUrl: string;
@@ -23,6 +24,9 @@ type EnvKey =
 export type Env = Partial<Record<EnvKey, string>>;
 
 const DEFAULT_STUN = 'stun:stun.l.google.com:19302';
+
+/** The Mosaic Voice edge: WebSocket host and SIP realm when nothing else is configured. */
+export const DEFAULT_HOST = 'sip.mosaicvoice.net';
 
 /** "https://wazo.example.com:443/path" -> "wazo.example.com" */
 export function hostOf(value: string): string {
@@ -60,10 +64,10 @@ export function parseIceServers(
 }
 
 export function loadConfig(env: Env): PhoneConfig {
-  const host = env.VITE_WAZO_HOST?.trim() ?? '';
+  const host = env.VITE_WAZO_HOST?.trim() || DEFAULT_HOST;
   return {
-    wsUrl: env.VITE_SIP_WS_URL?.trim() || (host ? wazoWebSocketUrl(host) : ''),
-    domain: env.VITE_SIP_DOMAIN?.trim() || (host ? hostOf(host) : ''),
+    wsUrl: env.VITE_SIP_WS_URL?.trim() || wazoWebSocketUrl(host),
+    domain: env.VITE_SIP_DOMAIN?.trim() || hostOf(host),
     username: env.VITE_SIP_USERNAME?.trim() ?? '',
     iceServers: parseIceServers(env.VITE_ICE_SERVERS, env.VITE_TURN_USERNAME, env.VITE_TURN_CREDENTIAL),
     traceSip: env.VITE_SIP_TRACE === 'true',

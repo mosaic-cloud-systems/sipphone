@@ -70,7 +70,17 @@ describe('loadConfig', () => {
     });
   });
 
-  it('leaves everything blank without a host', () => {
-    expect(loadConfig({})).toMatchObject({ wsUrl: '', domain: '' });
+  it('defaults to the Mosaic Voice edge without a host', () => {
+    expect(loadConfig({})).toMatchObject({
+      wsUrl: 'wss://sip.mosaicvoice.net/api/asterisk/ws',
+      domain: 'sip.mosaicvoice.net',
+    });
+  });
+
+  it('still lets VITE_WAZO_HOST point at a plain Wazo', () => {
+    expect(loadConfig({ VITE_WAZO_HOST: 'wazo.example.com' })).toMatchObject({
+      wsUrl: 'wss://wazo.example.com/api/asterisk/ws',
+      domain: 'wazo.example.com',
+    });
   });
 });
