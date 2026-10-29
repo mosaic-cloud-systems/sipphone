@@ -143,6 +143,27 @@ describe('SipClient', () => {
     expect(client.getState().call.status).toBe('idle');
   });
 
+  it('marks an outgoing call outbound with its start time', () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2026-10-29T14:02:00Z'));
+      manager().delegate.onCallCreated(fakeSession('', '8000'));
+      expect(client.getState().call).toMatchObject({
+        direction: 'outbound',
+        startedAt: Date.parse('2026-10-29T14:02:00Z'),
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('marks a received call inbound', () => {
+    const session = fakeSession('Alice', '200');
+    manager().delegate.onCallCreated(session);
+    manager().delegate.onCallReceived(session);
+    expect(client.getState().call.direction).toBe('inbound');
+  });
+
   it('reports the user part as the name when the caller has no display name', () => {
     manager().delegate.onCallCreated(fakeSession('', '300'));
     expect(client.getState().call).toMatchObject({ remote: '300', remoteUri: '300@wazo.example.com' });

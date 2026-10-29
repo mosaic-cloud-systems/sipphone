@@ -14,6 +14,10 @@ export interface CallInfo {
   held: boolean;
   /** When the call was answered, in epoch milliseconds. */
   answeredAt?: number;
+  /** Which way the call went: placed from here, or received. */
+  direction?: 'inbound' | 'outbound';
+  /** When the call started (dialled or began ringing), in epoch milliseconds. */
+  startedAt?: number;
 }
 
 export interface PhoneState {
@@ -185,12 +189,14 @@ export class SipClient {
         this.updateCall({
           ...IDLE_CALL,
           status: 'dialing',
+          direction: 'outbound',
+          startedAt: Date.now(),
           remote: remoteName(session),
           remoteUri: remoteUri(session),
         });
       },
       onCallReceived: (session) => {
-        if (live() && session === this.session) this.updateCall({ status: 'incoming' });
+        if (live() && session === this.session) this.updateCall({ status: 'incoming', direction: 'inbound' });
       },
       onCallAnswered: (session) => {
         if (live() && session === this.session) this.updateCall({ status: 'active', answeredAt: Date.now() });
