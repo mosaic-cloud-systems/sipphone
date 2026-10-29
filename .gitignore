@@ -12,3 +12,6 @@ coverage/
 .vscode/
 .idea/
 npm-debug.log*
+
+# superpowers plan workspaces
+.superpowers/
