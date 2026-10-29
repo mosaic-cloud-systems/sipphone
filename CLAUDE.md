@@ -45,8 +45,11 @@ PBX. Read README.md for setup and scope. The design and mockup link are in
   Keep that behaviour.
 - Wazo specifics: WebSocket at `wss://<host>/api/asterisk/ws`; credentials are
   the line's SIP username/password; the line needs Wazo's WebRTC settings.
-  On Mosaic Voice the SIP domain (realm) and the WebSocket host differ: the
-  login page has a field for each.
+  On Mosaic Voice the login is `<ext>@<slug>.mosaicvoice.net`; `account.ts`
+  turns it into the shared edge `sip.mosaicvoice.net`, the realm, and the line
+  name `<slug>-<ext>` (the naming rule the Mosaic Voice API follows when it
+  creates lines). Any other domain is a plain Wazo host. Server and SIP domain
+  overrides sit under Advanced on the login page.
 
 ## Testing limits
 

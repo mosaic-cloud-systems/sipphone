@@ -51,12 +51,12 @@ describe('parseIceServers', () => {
 });
 
 describe('loadConfig', () => {
-  it('derives the WebSocket URL and domain from VITE_WAZO_HOST', () => {
+  it('turns VITE_WAZO_HOST into server and domain overrides', () => {
     const config = loadConfig({ VITE_WAZO_HOST: 'wazo.example.com', VITE_SIP_TRACE: 'true' });
     expect(config).toMatchObject({
       wsUrl: 'wss://wazo.example.com/api/asterisk/ws',
       domain: 'wazo.example.com',
-      username: '',
+      login: '',
       traceSip: true,
     });
   });
@@ -66,27 +66,17 @@ describe('loadConfig', () => {
       VITE_WAZO_HOST: 'wazo.example.com',
       VITE_SIP_WS_URL: 'wss://edge.example.com/ws',
       VITE_SIP_DOMAIN: 'sip.example.com',
-      VITE_SIP_USERNAME: 'abc123',
+      VITE_SIP_USERNAME: 'abc123@sip.example.com',
     });
     expect(config).toMatchObject({
       wsUrl: 'wss://edge.example.com/ws',
       domain: 'sip.example.com',
-      username: 'abc123',
+      login: 'abc123@sip.example.com',
       traceSip: false,
     });
   });
 
-  it('defaults to the Mosaic Voice edge without a host', () => {
-    expect(loadConfig({})).toMatchObject({
-      wsUrl: 'wss://sip.mosaicvoice.net/api/asterisk/ws',
-      domain: 'sip.mosaicvoice.net',
-    });
-  });
-
-  it('still lets VITE_WAZO_HOST point at a plain Wazo', () => {
-    expect(loadConfig({ VITE_WAZO_HOST: 'wazo.example.com' })).toMatchObject({
-      wsUrl: 'wss://wazo.example.com/api/asterisk/ws',
-      domain: 'wazo.example.com',
-    });
+  it('leaves the overrides blank with nothing set, so the login rule decides', () => {
+    expect(loadConfig({})).toMatchObject({ wsUrl: '', domain: '', login: '' });
   });
 });

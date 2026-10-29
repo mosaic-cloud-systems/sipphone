@@ -89,8 +89,8 @@ const Phone: React.FC = () => {
     }
   };
 
-  const account = resolveAccount(form);
-  const accountLabel = `${account.username}@${account.domain}`;
+  // What the user typed, shown on the phone and used to file recents.
+  const accountLabel = form.login.trim();
 
   // Recent calls are kept per connected account, in this browser.
   useEffect(() => {
@@ -116,6 +116,8 @@ const Phone: React.FC = () => {
   };
 
   const handleConnect = run(async () => {
+    const account = resolveAccount(form);
+    if (!account) return;
     saveAccount(form);
     setConnectedLabel(accountLabel);
     await client.connect(account);

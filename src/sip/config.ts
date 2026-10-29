@@ -1,12 +1,16 @@
 // Phone settings from VITE_* environment variables (see .env.example).
 // Vite builds these values into the page's JavaScript, so a SIP password
 // never belongs here: the user types it into the sign-in dialog.
-// With nothing set, the phone talks to the Mosaic Voice edge.
+// With nothing set, the login rule in components/account.ts decides where the
+// phone connects from the username alone (1004@dave.mosaicvoice.net).
 
 export interface PhoneConfig {
+  /** Server override (a wss:// URL), or blank to follow the login rule. */
   wsUrl: string;
+  /** SIP domain override, or blank to follow the login rule. */
   domain: string;
-  username: string;
+  /** Prefilled username, e.g. 1004@dave.mosaicvoice.net. */
+  login: string;
   iceServers: RTCIceServer[];
   traceSip: boolean;
 }
@@ -25,8 +29,8 @@ export type Env = Partial<Record<EnvKey, string>>;
 
 const DEFAULT_STUN = 'stun:stun.l.google.com:19302';
 
-/** The Mosaic Voice edge: WebSocket host and SIP realm when nothing else is configured. */
-export const DEFAULT_HOST = 'sip.mosaicvoice.net';
+/** The Mosaic Voice edge: every Mosaic Voice softphone connects here. */
+export const MOSAIC_EDGE = 'sip.mosaicvoice.net';
 
 /** "https://wazo.example.com:443/path" -> "wazo.example.com" */
 export function hostOf(value: string): string {
@@ -39,7 +43,7 @@ export function hostOf(value: string): string {
 
 /**
  * Wazo serves SIP over WebSocket at wss://<host>/api/asterisk/ws.
- * A full ws:// or wss:// URL is returned unchanged.
+ * A ws:// or wss:// URL with a path is returned unchanged.
  */
 export function wazoWebSocketUrl(hostOrUrl: string): string {
   const value = hostOrUrl.trim();
@@ -67,11 +71,11 @@ export function parseIceServers(
 }
 
 export function loadConfig(env: Env): PhoneConfig {
-  const host = env.VITE_WAZO_HOST?.trim() || DEFAULT_HOST;
+  const host = env.VITE_WAZO_HOST?.trim() ?? '';
   return {
-    wsUrl: env.VITE_SIP_WS_URL?.trim() || wazoWebSocketUrl(host),
-    domain: env.VITE_SIP_DOMAIN?.trim() || hostOf(host),
-    username: env.VITE_SIP_USERNAME?.trim() ?? '',
+    wsUrl: env.VITE_SIP_WS_URL?.trim() || (host ? wazoWebSocketUrl(host) : ''),
+    domain: env.VITE_SIP_DOMAIN?.trim() || (host ? hostOf(host) : ''),
+    login: env.VITE_SIP_USERNAME?.trim() ?? '',
     iceServers: parseIceServers(env.VITE_ICE_SERVERS, env.VITE_TURN_USERNAME, env.VITE_TURN_CREDENTIAL),
     traceSip: env.VITE_SIP_TRACE === 'true',
   };

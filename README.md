@@ -28,11 +28,15 @@ With nothing configured the phone talks to the Mosaic Voice edge:
 | WebSocket | `wss://sip.mosaicvoice.net/api/asterisk/ws` |
 | SIP domain (realm) | `sip.mosaicvoice.net` |
 
-The login page has four fields: **Username** and **Password** (the line's SIP
-credentials, not a portal login), **Server** (a host name, or a full `ws://`
-or `wss://` URL; a host name becomes `wss://<host>/api/asterisk/ws`), and
-**SIP domain** (the realm; blank uses the server's host). Username, server
-and domain are remembered in the browser; the password never is.
+The login page asks for a **Username** and **Password** made for the
+softphone. The username is `1004@dave.mosaicvoice.net`: the extension, then the
+customer's SIP realm. The phone works the rest out itself: it connects to the
+shared edge `sip.mosaicvoice.net` and registers as `dave-1004` (line names must
+be unique across customers, so the realm's first label is part of the name).
+Any other domain, say `alice@wazo.example.com`, is treated as a plain Wazo host
+and registers as `alice` there. **Advanced** hides a Server and SIP domain
+override for odd setups. The username and overrides are remembered in this
+browser; the password never is.
 
 To point the phone at a plain Wazo instead, type its host as the server, or
 set `VITE_WAZO_HOST` in `.env.local` so it is prefilled.
@@ -41,8 +45,9 @@ set `VITE_WAZO_HOST` in `.env.local` so it is prefilled.
 
 - **WebSocket:** Wazo serves SIP over WebSocket at
   `wss://<your-wazo>/api/asterisk/ws`, on by default.
-- **Credentials:** use the *line's* SIP username and password (Wazo line, SIP
-  settings), not the Wazo user's portal login.
+- **Credentials:** the password is the *line's* SIP password (Wazo line, SIP
+  settings), not the Wazo user's portal login. The username typed is
+  `<ext>@<realm>`; see the login rule above for what the line is called.
 - **WebRTC line:** the line must use Wazo's WebRTC settings (recent Wazo
   versions ship a `webrtc` SIP template; check your version's docs). A line set
   up for a desk phone will register but fail on media. DTMF needs `dtmf_mode`
@@ -71,7 +76,7 @@ them.
 
 | Symptom | Likely cause |
 |---|---|
-| "Registration rejected: 401/403" | Wrong line username or password. The phone stops instead of retrying, so a bad password doesn't trip Wazo's fail2ban. |
+| "Registration rejected: 401/403" | The username or password was not accepted; the server does not say which. The phone stops instead of retrying, so a bad password doesn't trip Wazo's fail2ban. |
 | Stuck on "Connecting…" / WebSocket error | Wrong server, or the browser doesn't trust its certificate. |
 | Call connects but no audio, or one-way audio | ICE/NAT. Check the line's WebRTC settings; set `VITE_ICE_SERVERS` (and a TURN server if both ends are behind NAT). |
 | Keypad tones ignored by an IVR | The endpoint's `dtmf_mode` is not `rfc4733` or `auto`. |
