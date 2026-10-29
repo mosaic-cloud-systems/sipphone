@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Local settings: may hold your Wazo host and TURN credentials
+.env
+.env.local
+.env.*.local
+
+.DS_Store
+.vscode/
+.idea/
+npm-debug.log*
