@@ -1,0 +1,121 @@
+import React, { useEffect, useRef } from 'react';
+import Brand from './Brand';
+import StatusPill from './StatusPill';
+import Keypad from './Keypad';
+import { BackspaceIcon, CloseIcon, LogoutIcon, PhoneIcon, SlidersIcon } from './icons';
+import { numberFontSize } from './numberSize';
+import type { PhoneState } from '../sip/SipClient';
+
+interface DialerProps {
+  state: PhoneState;
+  accountLabel: string;
+  number: string;
+  onNumberChange: (value: string) => void;
+  onCall: () => void;
+  onOpenAccount: () => void;
+  onDisconnect: () => void;
+  error?: string | null;
+  onDismissError: () => void;
+}
+
+const Dialer: React.FC<DialerProps> = ({
+  state,
+  accountLabel,
+  number,
+  onNumberChange,
+  onCall,
+  onOpenAccount,
+  onDisconnect,
+  error,
+  onDismissError,
+}) => {
+  const registered = state.registration === 'registered';
+  const canCall = registered && number.trim().length > 0;
+  const input = useRef<HTMLInputElement>(null);
+
+  // A number wider than the field at the smallest size stays scrolled to its end.
+  useEffect(() => {
+    const el = input.current;
+    if (el) el.scrollLeft = el.scrollWidth;
+  }, [number]);
+
+  return (
+    <div className="screen">
+      <Brand variant="inline" />
+
+      <div className="row row--between" style={{ marginTop: 24 }}>
+        <StatusPill registration={state.registration} label={accountLabel} />
+        <div className="icon-row">
+          <button type="button" className="icon-btn" aria-label="Account settings" onClick={onOpenAccount}>
+            <SlidersIcon />
+          </button>
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label="Disconnect"
+            disabled={state.registration === 'disconnected'}
+            onClick={onDisconnect}
+          >
+            <LogoutIcon />
+          </button>
+        </div>
+      </div>
+
+      {error && (
+        <div className="alert" role="alert" style={{ marginTop: 16 }}>
+          <span>{error}</span>
+          <button type="button" className="alert__close" aria-label="Dismiss" onClick={onDismissError}>
+            <CloseIcon />
+          </button>
+        </div>
+      )}
+
+      <div className="number-line" style={{ marginTop: 40 }}>
+        <span className="number-line__spacer" aria-hidden="true" />
+        <input
+          ref={input}
+          className="number-line__input"
+          type="text"
+          inputMode="tel"
+          aria-label="Number"
+          placeholder="Extension or number"
+          autoComplete="off"
+          spellCheck={false}
+          value={number}
+          style={{ fontSize: numberFontSize(number) }}
+          onChange={(e) => onNumberChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && canCall) onCall();
+          }}
+        />
+        {number ? (
+          <button
+            type="button"
+            className="icon-btn icon-btn--plain"
+            aria-label="Delete last digit"
+            onClick={() => onNumberChange(number.slice(0, -1))}
+          >
+            <BackspaceIcon />
+          </button>
+        ) : (
+          <span className="number-line__spacer" aria-hidden="true" />
+        )}
+      </div>
+
+      <div className="push-down stack stack--center" style={{ gap: 28 }}>
+        <Keypad onKey={(key) => onNumberChange(number + key)} />
+        <button
+          type="button"
+          className="action action--call"
+          aria-label="Call"
+          disabled={!canCall}
+          onClick={onCall}
+        >
+          <PhoneIcon />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default Dialer;
