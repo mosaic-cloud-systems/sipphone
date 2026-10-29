@@ -6,7 +6,10 @@ export type CallStatus = 'idle' | 'dialing' | 'incoming' | 'active';
 
 export interface CallInfo {
   status: CallStatus;
+  /** Display name, or the user part of the remote URI when there is none. */
   remote?: string;
+  /** The remote party as user@host. */
+  remoteUri?: string;
   muted: boolean;
   held: boolean;
   /** When the call was answered, in epoch milliseconds. */
@@ -179,7 +182,12 @@ export class SipClient {
       onCallCreated: (session) => {
         if (!live()) return;
         this.session = session;
-        this.updateCall({ ...IDLE_CALL, status: 'dialing', remote: remoteName(session) });
+        this.updateCall({
+          ...IDLE_CALL,
+          status: 'dialing',
+          remote: remoteName(session),
+          remoteUri: remoteUri(session),
+        });
       },
       onCallReceived: (session) => {
         if (live() && session === this.session) this.updateCall({ status: 'incoming' });
@@ -244,6 +252,11 @@ export class SipClient {
 function remoteName(session: Session): string {
   const { displayName, uri } = session.remoteIdentity;
   return displayName || uri.user || uri.toString();
+}
+
+function remoteUri(session: Session): string {
+  const { user, host } = session.remoteIdentity.uri;
+  return `${user}@${host}`;
 }
 
 function errorText(error: unknown): string {

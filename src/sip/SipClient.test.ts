@@ -55,7 +55,12 @@ const account = {
 };
 
 function fakeSession(displayName: string, user: string): Session {
-  return { remoteIdentity: { displayName, uri: { user, toString: () => `sip:${user}@x` } } } as unknown as Session;
+  return {
+    remoteIdentity: {
+      displayName,
+      uri: { user, host: 'wazo.example.com', toString: () => `sip:${user}@wazo.example.com` },
+    },
+  } as unknown as Session;
 }
 
 describe('SipClient', () => {
@@ -114,7 +119,11 @@ describe('SipClient', () => {
     const session = fakeSession('Alice', '200');
     manager().delegate.onCallCreated(session);
     manager().delegate.onCallReceived(session);
-    expect(client.getState().call).toMatchObject({ status: 'incoming', remote: 'Alice' });
+    expect(client.getState().call).toMatchObject({
+      status: 'incoming',
+      remote: 'Alice',
+      remoteUri: '200@wazo.example.com',
+    });
 
     await client.answer();
     expect(manager().answer).toHaveBeenCalledWith(session);
@@ -125,6 +134,11 @@ describe('SipClient', () => {
 
     manager().delegate.onCallHangup(session);
     expect(client.getState().call.status).toBe('idle');
+  });
+
+  it('reports the user part as the name when the caller has no display name', () => {
+    manager().delegate.onCallCreated(fakeSession('', '300'));
+    expect(client.getState().call).toMatchObject({ remote: '300', remoteUri: '300@wazo.example.com' });
   });
 
   it('mutes, holds, sends DTMF and transfers the current call', async () => {
