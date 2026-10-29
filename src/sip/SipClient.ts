@@ -75,6 +75,9 @@ export class SipClient {
       },
       iceStopWaitingOnServerReflexive: true,
       maxSimultaneousSessions: 1,
+      // Send keypad tones in the RTP stream (RFC 4733), as a WebRTC phone does,
+      // rather than SessionManager's default SIP INFO.
+      sendDTMFUsingSessionDescriptionHandler: true,
       userAgentOptions: {
         authorizationUsername: account.username,
         authorizationPassword: account.password,

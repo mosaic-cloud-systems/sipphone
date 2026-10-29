@@ -145,6 +145,8 @@ describe('SipClient', () => {
 
     await client.sendDtmf('5');
     expect(manager().sendDTMF).toHaveBeenCalledWith(session, '5');
+    // Tones go in the RTP stream (RFC 4733), as a WebRTC phone would send them, not as SIP INFO.
+    expect(manager().options.sendDTMFUsingSessionDescriptionHandler).toBe(true);
 
     await client.transfer('201');
     expect(manager().transfer).toHaveBeenCalledWith(session, 'sip:201@wazo.example.com');

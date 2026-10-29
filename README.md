@@ -9,7 +9,7 @@ over a secure WebSocket (SIP.js) and makes and takes audio calls with WebRTC.
 - Call an extension or number; cancel while it rings
 - Answer or decline incoming calls
 - Mute, hold/resume, hang up
-- Keypad tones (DTMF) during a call
+- Keypad tones (DTMF) during a call, sent in the RTP stream (RFC 4733)
 - Blind transfer
 - Optional SIP trace: every SIP message logged to the browser console
 
