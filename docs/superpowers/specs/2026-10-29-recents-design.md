@@ -130,6 +130,10 @@ replaces the number line, keypad and call button with:
 
 - Server history from `wazo-call-logd` once the phone can get a Wazo token
   through the Mosaic Voice API. The entry shape above is chosen to match.
+  This is also the path for customer analysis: most tenants will use Zycoo
+  or Grandstream desk phones, not this softphone, so their agents need the
+  raw call records from the PBX through the Mosaic Voice API, not from a
+  browser store.
 - Names from the tenant directory (`wazo-dird`) on rows and on the incoming
   call screen.
 - Post-call recap and voicemail list, per the feature review.
