@@ -28,13 +28,38 @@ export function entryFor(call: CallInfo, endedAt: number): CallEntry | undefined
   const name = call.direction === 'inbound' && call.remote && call.remote !== number ? call.remote : undefined;
   const answered = call.answeredAt !== undefined;
   return {
-    id: crypto.randomUUID(),
+    id: newId(call.startedAt),
     direction: call.direction,
     number,
     ...(name ? { name } : {}),
     start: call.startedAt,
     answered,
     duration: answered ? Math.max(0, Math.floor((endedAt - call.answeredAt!) / 1000)) : 0,
+  };
+}
+
+/** randomUUID only exists on secure origins; a dev server on a LAN address has none. */
+function newId(start: number): string {
+  return typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `${start}-${Math.random().toString(36).slice(2)}`;
+}
+
+/**
+ * Follows the call state and yields an entry each time a call it saw ends.
+ * Meant to run inside the client's subscriber, outside React's render cycle,
+ * so the entry is saved even when the page is unloading.
+ */
+export function callRecorder(): (call: CallInfo, now: number) => CallEntry | undefined {
+  let last: CallInfo | undefined;
+  return (call, now) => {
+    if (call.status !== 'idle') {
+      last = call;
+      return undefined;
+    }
+    const ended = last;
+    last = undefined;
+    return ended ? entryFor(ended, now) : undefined;
   };
 }
 

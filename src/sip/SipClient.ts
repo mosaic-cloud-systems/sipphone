@@ -1,5 +1,5 @@
 import { Web } from 'sip.js';
-import type { Session } from 'sip.js';
+import type { Invitation, Session } from 'sip.js';
 
 export type Registration = 'disconnected' | 'connecting' | 'registered' | 'unregistered' | 'error';
 export type CallStatus = 'idle' | 'dialing' | 'incoming' | 'active';
@@ -185,6 +185,13 @@ export class SipClient {
       // Fires for every new call, outgoing or incoming; onCallReceived follows for incoming ones.
       onCallCreated: (session) => {
         if (!live()) return;
+        // One call at a time. SIP.js only refuses a new call once more than
+        // maxSimultaneousSessions are up, so a second INVITE gets here: send
+        // it 486 Busy and leave the current call alone.
+        if (this.session && 'reject' in session) {
+          void (session as Invitation).reject({ statusCode: 486 }).catch(() => undefined);
+          return;
+        }
         this.session = session;
         this.updateCall({
           ...IDLE_CALL,

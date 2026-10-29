@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { SipClient, type CallInfo, type PhoneState } from '../sip/SipClient';
+import { SipClient, type PhoneState } from '../sip/SipClient';
 import { loadConfig } from '../sip/config';
 import { resolveAccount, saveAccount, savedAccount, type AccountForm } from './account';
 import { screenFor, visibleError } from './screen';
 import {
   addEntry,
-  entryFor,
+  callRecorder,
   loadRecents,
   loadTab,
   recentsKey,
@@ -37,10 +37,30 @@ const Phone: React.FC = () => {
   const [dismissedError, setDismissedError] = useState<string | undefined>();
   const [now, setNow] = useState(Date.now());
   const [tab, setTab] = useState<DialerTab>(loadTab);
+  // The account the client was last asked to connect with; recents are filed under it.
+  const [connectedLabel, setConnectedLabel] = useState<string>();
   const [store, setStore] = useState<RecentsStore>({ entries: [], seenAt: 0 });
-  const lastCall = useRef<CallInfo>();
+  // Mirrors of the store and its key for the client subscriber, which runs
+  // outside React's render cycle (so a call ended by unloading is still saved).
+  const storeRef = useRef(store);
+  const keyRef = useRef<string>();
+  const record = useRef(callRecorder());
 
-  useEffect(() => client.subscribe(setState), [client]);
+  const commitStore = (next: RecentsStore) => {
+    storeRef.current = next;
+    setStore(next);
+    if (keyRef.current) saveRecents(keyRef.current, next);
+  };
+
+  useEffect(
+    () =>
+      client.subscribe((next) => {
+        setState(next);
+        const entry = record.current(next.call, Date.now());
+        if (entry) commitStore({ ...storeRef.current, entries: addEntry(storeRef.current.entries, entry) });
+      }),
+    [client], // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   useEffect(() => {
     const leave = () => void client.disconnect();
@@ -72,28 +92,13 @@ const Phone: React.FC = () => {
   const account = resolveAccount(form);
   const accountLabel = `${account.username}@${account.domain}`;
 
-  // Recent calls are kept per account, in this browser.
+  // Recent calls are kept per connected account, in this browser.
   useEffect(() => {
-    setStore(loadRecents(recentsKey(accountLabel)));
-  }, [accountLabel]);
-
-  const updateStore = (next: RecentsStore) => {
-    setStore(next);
-    saveRecents(recentsKey(accountLabel), next);
-  };
-
-  // When the call state returns to idle, the last call it saw becomes an entry.
-  useEffect(() => {
-    if (state.call.status !== 'idle') {
-      lastCall.current = state.call;
-      return;
-    }
-    const ended = lastCall.current;
-    lastCall.current = undefined;
-    if (!ended) return;
-    const entry = entryFor(ended, Date.now());
-    if (entry) updateStore({ ...store, entries: addEntry(store.entries, entry) });
-  }, [state.call]); // eslint-disable-line react-hooks/exhaustive-deps
+    keyRef.current = connectedLabel ? recentsKey(connectedLabel) : undefined;
+    const loaded = keyRef.current ? loadRecents(keyRef.current) : { entries: [], seenAt: 0 };
+    storeRef.current = loaded;
+    setStore(loaded);
+  }, [connectedLabel]);
 
   const screen = screenFor({ loginOpen, callStatus: state.call.status });
   const missedCount = unseenMissed(store.entries, store.seenAt);
@@ -101,7 +106,7 @@ const Phone: React.FC = () => {
   // Opening the Recents tab marks the missed calls as seen.
   useEffect(() => {
     if (screen === 'dialer' && tab === 'recents' && missedCount > 0) {
-      updateStore({ ...store, seenAt: Date.now() });
+      commitStore({ ...storeRef.current, seenAt: Date.now() });
     }
   }, [screen, tab, missedCount]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -112,6 +117,7 @@ const Phone: React.FC = () => {
 
   const handleConnect = run(async () => {
     saveAccount(form);
+    setConnectedLabel(accountLabel);
     await client.connect(account);
   });
 
@@ -146,7 +152,7 @@ const Phone: React.FC = () => {
     return (
       <Dialer
         state={state}
-        accountLabel={accountLabel}
+        accountLabel={connectedLabel ?? accountLabel}
         number={number}
         onNumberChange={setNumber}
         onCall={() => void handleCall()}
@@ -160,7 +166,7 @@ const Phone: React.FC = () => {
         missedCount={missedCount}
         now={Date.now()}
         onCallEntry={callEntry}
-        onClearRecents={() => updateStore({ entries: [], seenAt: Date.now() })}
+        onClearRecents={() => commitStore({ entries: [], seenAt: Date.now() })}
       />
     );
   }
@@ -168,7 +174,7 @@ const Phone: React.FC = () => {
   return (
     <CallScreen
       state={state}
-      accountLabel={accountLabel}
+      accountLabel={connectedLabel ?? accountLabel}
       now={now}
       onAnswer={() => void run(() => client.answer())()}
       onDecline={() => void run(() => client.decline())()}

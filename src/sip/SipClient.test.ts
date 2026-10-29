@@ -56,6 +56,7 @@ const account = {
 
 function fakeSession(displayName: string, user: string): Session {
   return {
+    reject: vi.fn(async () => {}),
     remoteIdentity: {
       displayName,
       uri: { user, host: 'wazo.example.com', toString: () => `sip:${user}@wazo.example.com` },
@@ -162,6 +163,19 @@ describe('SipClient', () => {
     manager().delegate.onCallCreated(session);
     manager().delegate.onCallReceived(session);
     expect(client.getState().call.direction).toBe('inbound');
+  });
+
+  it('rejects a second incoming call as busy and keeps the first', () => {
+    const first = fakeSession('Alice', '200');
+    manager().delegate.onCallCreated(first);
+    manager().delegate.onCallReceived(first);
+    manager().delegate.onCallAnswered(first);
+    const second = fakeSession('Bob', '300');
+    manager().delegate.onCallCreated(second);
+    expect((second as unknown as { reject: ReturnType<typeof vi.fn> }).reject).toHaveBeenCalledWith({ statusCode: 486 });
+    expect(client.getState().call).toMatchObject({ status: 'active', remote: 'Alice' });
+    manager().delegate.onCallHangup(second);
+    expect(client.getState().call.status).toBe('active');
   });
 
   it('reports the user part as the name when the caller has no display name', () => {

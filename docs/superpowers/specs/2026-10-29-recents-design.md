@@ -37,10 +37,10 @@ away from the tab, and how you ring them back without retyping.
   an outgoing row shows the number dialled. Names from `wazo-dird` are a
   separate feature.
 - No record of a second incoming call that arrives during a call. The client
-  allows one call at a time, so SIP.js answers the second INVITE with 486
-  Busy before the phone sees it, and Wazo takes the caller to the line's
-  busy destination (voicemail). Recording it needs a hook into SIP.js's
-  session manager; it is listed under "Later".
+  allows one call at a time: it answers the second INVITE with 486 Busy
+  itself (SIP.js 0.21 only refuses a call once more than its session limit
+  are up), and Wazo takes the caller to the line's busy destination
+  (voicemail). Recording it as missed is listed under "Later".
 - No grouping of repeated calls, no search, no per-row delete, no details
   page. "Clear" empties the whole list.
 - No change to how calls are placed or answered.
@@ -125,8 +125,8 @@ replaces the number line, keypad and call button with:
 
 ## Later (not in this build)
 
-- A second incoming call during a call, recorded as missed. Needs the SIP
-  client to observe the session manager's busy rejection.
+- A second incoming call during a call, recorded as missed. The client's
+  busy rejection in `onCallCreated` is the hook.
 
 - Server history from `wazo-call-logd` once the phone can get a Wazo token
   through the Mosaic Voice API. The entry shape above is chosen to match.

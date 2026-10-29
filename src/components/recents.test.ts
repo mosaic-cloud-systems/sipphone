@@ -3,6 +3,7 @@ import {
   TAB_KEY,
   addEntry,
   ariaLabel,
+  callRecorder,
   entryFor,
   isMissed,
   loadRecents,
@@ -71,6 +72,35 @@ describe('entryFor', () => {
 
   it('returns nothing for a call the state never saw start', () => {
     expect(entryFor(base, 5)).toBeUndefined();
+  });
+
+  it('still gets an id where crypto.randomUUID is missing (plain http)', () => {
+    const real = globalThis.crypto;
+    Object.defineProperty(globalThis, 'crypto', { value: {}, configurable: true });
+    try {
+      const e = entryFor({ ...base, direction: 'outbound', startedAt: 7, remote: '1', remoteUri: '1@h' }, 9)!;
+      expect(e.id).toBeTruthy();
+    } finally {
+      Object.defineProperty(globalThis, 'crypto', { value: real, configurable: true });
+    }
+  });
+});
+
+describe('callRecorder', () => {
+  it('yields one entry when a call it saw returns to idle', () => {
+    const record = callRecorder();
+    expect(record(base, 1)).toBeUndefined();
+    expect(record({ ...base, status: 'dialing', direction: 'outbound', startedAt: 10, remote: '8000', remoteUri: '8000@h' }, 10)).toBeUndefined();
+    expect(record({ ...base, status: 'active', direction: 'outbound', startedAt: 10, answeredAt: 12000, remote: '8000', remoteUri: '8000@h' }, 12000)).toBeUndefined();
+    const entry = record(base, 20000);
+    expect(entry).toMatchObject({ number: '8000', answered: true, duration: 8 });
+    expect(record(base, 21000)).toBeUndefined();
+  });
+
+  it('records an outgoing call that failed before ringing as not answered', () => {
+    const record = callRecorder();
+    record({ ...base, status: 'dialing', direction: 'outbound', startedAt: 10, remote: '1001', remoteUri: '1001@h' }, 10);
+    expect(record(base, 300)).toMatchObject({ direction: 'outbound', number: '1001', answered: false, duration: 0 });
   });
 });
 
