@@ -27,9 +27,12 @@ PBX. Read README.md for setup and scope. The design and mockup link are in
   and picks the screen. No SIP logic in the UI.
 - Screens are presentational: `Login.tsx`, `Dialer.tsx`, `CallScreen.tsx`
   (calling, incoming, in call, DTMF keypad, transfer dialog). Shared pieces:
-  `Keypad.tsx`, `Brand.tsx`, `StatusPill.tsx`, `icons.tsx` (inline SVG only).
+  `Keypad.tsx`, `Brand.tsx`, `StatusPill.tsx`, `RecentsList.tsx` (the Recents
+  tab on the dialer), `icons.tsx` (inline SVG only).
 - Pure helpers with tests: `account.ts` (login form, what is remembered),
-  `numberSize.ts` (dialled-number font size), `duration.ts` (call timer).
+  `numberSize.ts` (dialled-number font size), `duration.ts` (call timer),
+  `recents.ts` (call history entries, row text, per-account storage; the
+  entry fields follow Wazo's CDR so a server list can replace it later).
 - `src/styles.css` holds the design tokens copied from mosaic.site and every
   style. No UI library: Material UI was removed in the redesign.
 

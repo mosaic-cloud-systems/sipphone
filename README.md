@@ -12,6 +12,8 @@ calls with WebRTC.
 - Mute, hold/resume, hang up
 - Keypad tones (DTMF) during a call, sent in the RTP stream (RFC 4733)
 - Blind transfer
+- Recent calls on the dialer, with one-tap redial and a missed-call badge;
+  kept in this browser per account (newest 100)
 - Optional SIP trace: every SIP message logged to the browser console
 
 Not built yet: attended transfer, conferencing, recording, video, more than one
@@ -99,8 +101,10 @@ src/
   components/StatusPill.tsx Registration status
   components/icons.tsx     Inline SVG icons
   components/account.ts    Login form helpers and what is remembered
+  components/RecentsList.tsx Recent calls on the dialer's Recents tab
   components/numberSize.ts Font size for the dialled number
   components/duration.ts   Call timer formatting
+  components/recents.ts    Call history entries, row text, per-account storage
   styles.css               Design tokens from mosaic.site and all styles
   App.tsx, main.tsx        Layout frame and entry point
 public/mosaic-logo.png     The Mosaic cube, also the favicon
