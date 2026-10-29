@@ -1,7 +1,9 @@
-# sipphone: browser SIP phone for Wazo
+# sipphone: the Mosaic Voice browser phone
 
-React 18 + TypeScript + Vite, Material UI 5, SIP.js 0.21 over WSS. Used to test
-SIP and WebRTC against a Wazo PBX. Read README.md for setup and scope.
+React 18 + TypeScript + Vite, plain CSS (`src/styles.css`), SIP.js 0.21 over
+WSS. The Mosaic Voice phone; also used to test SIP and WebRTC against any Wazo
+PBX. Read README.md for setup and scope. The design and mockup link are in
+`docs/superpowers/specs/2026-10-29-mosaic-voice-redesign-design.md`.
 
 ## Commands
 
@@ -18,10 +20,18 @@ SIP and WebRTC against a Wazo PBX. Read README.md for setup and scope.
   `Web.SessionManager`, keeps one account and at most one call, and publishes a
   `PhoneState` through `subscribe()`. Add SIP features here, with a test in
   `SipClient.test.ts` (it mocks SessionManager and plays Wazo's events).
-- `src/sip/config.ts` turns `VITE_*` settings into a `PhoneConfig`. The env
-  keys are declared in `src/vite-env.d.ts`.
-- `src/components/Phone.tsx` renders `PhoneState` and calls `SipClient`
-  methods. No SIP logic in the UI.
+- `src/sip/config.ts` turns `VITE_*` settings into a `PhoneConfig`, defaulting
+  to the Mosaic Voice edge (`sip.mosaicvoice.net`). The env keys are declared
+  in `src/vite-env.d.ts`.
+- `src/components/Phone.tsx` owns the state and every call into `SipClient`,
+  and picks the screen. No SIP logic in the UI.
+- Screens are presentational: `Login.tsx`, `Dialer.tsx`, `CallScreen.tsx`
+  (calling, incoming, in call, DTMF keypad, transfer dialog). Shared pieces:
+  `Keypad.tsx`, `Brand.tsx`, `StatusPill.tsx`, `icons.tsx` (inline SVG only).
+- Pure helpers with tests: `account.ts` (login form, what is remembered),
+  `numberSize.ts` (dialled-number font size), `duration.ts` (call timer).
+- `src/styles.css` holds the design tokens copied from mosaic.site and every
+  style. No UI library: Material UI was removed in the redesign.
 
 ## Rules
 
@@ -32,6 +42,8 @@ SIP and WebRTC against a Wazo PBX. Read README.md for setup and scope.
   Keep that behaviour.
 - Wazo specifics: WebSocket at `wss://<host>/api/asterisk/ws`; credentials are
   the line's SIP username/password; the line needs Wazo's WebRTC settings.
+  On Mosaic Voice the SIP domain (realm) and the WebSocket host differ: the
+  login page has a field for each.
 
 ## Testing limits
 
