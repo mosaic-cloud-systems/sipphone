@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Brand from './Brand';
 import StatusPill from './StatusPill';
 import Keypad from './Keypad';
@@ -32,11 +32,20 @@ const Dialer: React.FC<DialerProps> = ({
   const registered = state.registration === 'registered';
   const canCall = registered && number.trim().length > 0;
   const input = useRef<HTMLInputElement>(null);
+  const [overflowing, setOverflowing] = useState(false);
 
-  // A number wider than the field at the smallest size stays scrolled to its end.
+  // A number wider than the field even at the smallest size is left-aligned and
+  // kept scrolled to its end, so the most recent digits stay visible. Measured
+  // again once the web fonts are in, since they change the width.
   useEffect(() => {
-    const el = input.current;
-    if (el) el.scrollLeft = el.scrollWidth;
+    const measure = () => {
+      const el = input.current;
+      if (!el) return;
+      setOverflowing(el.scrollWidth > el.clientWidth);
+      el.scrollLeft = el.scrollWidth;
+    };
+    measure();
+    void document.fonts?.ready.then(measure);
   }, [number]);
 
   return (
@@ -74,7 +83,7 @@ const Dialer: React.FC<DialerProps> = ({
         <span className="number-line__spacer" aria-hidden="true" />
         <input
           ref={input}
-          className="number-line__input"
+          className={`number-line__input${overflowing ? ' number-line__input--overflow' : ''}`}
           type="text"
           inputMode="tel"
           aria-label="Number"

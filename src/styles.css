@@ -482,6 +482,10 @@ input:focus-visible {
   overflow: hidden;
 }
 
+.number-line__input--overflow {
+  text-align: left;
+}
+
 .number-line__input:focus-visible {
   box-shadow: none;
 }
