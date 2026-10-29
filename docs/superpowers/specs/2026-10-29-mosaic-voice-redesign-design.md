@@ -128,25 +128,28 @@ and the dialer's "Connecting…" and "Error" pill states are reachable after
 the view has closed once. Stacked lockup centred at the top. Heading "Sign in", lede "Use your
 line's SIP username and password." Fields in this order: Username (text,
 `autocomplete=username`), Password (password, `autocomplete=current-password`,
-help text "Never saved. Username and domain are remembered in this browser."),
-SIP domain (text, monospace, default `sip.mosaicvoice.net`). Button "Login",
-full width, 52 px, accent blue, white Inter 600. Footer in mono silver:
-"SIP over WSS · WebRTC audio". A registration error shows above the form as a
-crimson-text alert on a light tint; the button shows "Connecting…" and is
-disabled while connecting. Enter in any field submits.
+help text "Never saved. The other fields are remembered in this browser."),
+Server (text, monospace, default `sip.mosaicvoice.net`; accepts a host name
+or a full `ws://` or `wss://` URL, help text showing the derived WebSocket
+URL), SIP domain (text, monospace, default `sip.mosaicvoice.net`). Button
+"Login", full width, 52 px, accent blue, white Inter 600. Footer in mono
+silver: "SIP over WSS · WebRTC audio". A registration error shows above the
+form as a crimson-text alert on a light tint; the button shows "Connecting…"
+and is disabled while connecting. Enter in any field submits.
 
 The SIP domain and the WebSocket edge are two different things on Mosaic
 Voice: the phase-0 infrastructure plan in `~/dev_projects/mosaic_voice`
 registers lines with a per-tenant realm (for example `test.mosaicvoice.net`)
 over a WebSocket to the shared edge `wss://sip.mosaicvoice.net/api/asterisk/ws`,
 and only the edge host has a certificate. So the WebSocket URL is **not**
-derived from the domain field. It is `VITE_SIP_WS_URL` if set, otherwise
-`wazoWebSocketUrl(VITE_WAZO_HOST)` if that is set, otherwise the fixed edge
-`wss://sip.mosaicvoice.net/api/asterisk/ws`. The domain field is only the
-SIP realm (the AOR's host part); its default is `VITE_SIP_DOMAIN` or
-`sip.mosaicvoice.net`. Username and domain persist in localStorage under the
-existing key; password never does. The footer under the form shows the edge
-host in mono so a tester can see where the socket goes.
+derived from the domain field. It comes from the Server field, through
+today's `wazoWebSocketUrl` (`wss://<host>/api/asterisk/ws`, or a `ws://` or
+`wss://` URL unchanged). The Server field's initial value is the config
+`wsUrl` (see Config), which defaults to the Mosaic edge. The domain field is
+only the SIP realm (the AOR's host part); its default is the config `domain`.
+Username, server and domain persist in localStorage under the existing key;
+password never does. An empty domain falls back to the server's host name,
+as today.
 
 **Dialer** (mockup "Dialer (registered)"). Inline lockup row. Second row:
 status pill left (`--mist`, 999 px; emerald dot, "Registered" 13 px 500, then
