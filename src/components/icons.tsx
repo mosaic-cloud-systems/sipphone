@@ -131,3 +131,19 @@ export const CloseIcon: React.FC<IconProps> = ({ size = 16 }) => (
     <line x1="6" y1="6" x2="18" y2="18" />
   </Stroke>
 );
+
+/** Up-right: a call placed from here. */
+export const ArrowOutIcon: React.FC<IconProps> = ({ size = 16 }) => (
+  <Stroke size={size} strokeWidth={2.2}>
+    <line x1="7" y1="17" x2="17" y2="7" />
+    <polyline points="7 7 17 7 17 17" />
+  </Stroke>
+);
+
+/** Down-left: a call that came in. */
+export const ArrowInIcon: React.FC<IconProps> = ({ size = 16 }) => (
+  <Stroke size={size} strokeWidth={2.2}>
+    <line x1="17" y1="7" x2="7" y2="17" />
+    <polyline points="17 17 7 17 7 7" />
+  </Stroke>
+);
