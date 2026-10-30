@@ -2,6 +2,7 @@ import React from 'react';
 import Brand from './Brand';
 import { CloseIcon } from './icons';
 import { describeLogin, isComplete, loginErrorHint, type AccountForm } from './account';
+import { BRAND } from '../brand';
 
 interface LoginProps {
   form: AccountForm;
@@ -70,7 +71,7 @@ const Login: React.FC<LoginProps> = ({
             autoComplete="username"
             autoCapitalize="none"
             spellCheck={false}
-            placeholder="1004@company.mosaicvoice.net"
+            placeholder={BRAND.loginExample}
             value={form.login}
             onChange={set('login')}
             aria-describedby="login-username-help"

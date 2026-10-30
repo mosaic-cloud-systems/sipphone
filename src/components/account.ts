@@ -1,6 +1,7 @@
 // The sign-in form, the login rule, and what is remembered. The password is never saved.
-import { MOSAIC_EDGE, wazoWebSocketUrl, type PhoneConfig } from '../sip/config';
+import { wazoWebSocketUrl, type PhoneConfig } from '../sip/config';
 import type { SipAccount } from '../sip/SipClient';
+import { BRAND, SERVICE } from '../brand';
 
 export interface AccountForm {
   /** "1004@dave.mosaicvoice.net", or "alice@wazo.example.com" for a plain Wazo. */
@@ -13,7 +14,6 @@ export interface AccountForm {
 }
 
 export const STORAGE_KEY = 'sipphone.account';
-const MOSAIC_SUFFIX = '.mosaicvoice.net';
 
 export interface ResolvedLogin {
   /** The name the line authenticates with. */
@@ -23,10 +23,10 @@ export interface ResolvedLogin {
 }
 
 /**
- * The login rule. A Mosaic Voice login, <ext>@<slug>.mosaicvoice.net, registers
- * as <slug>-<ext> on that realm through the shared edge: line names must be
- * unique across tenants, so the slug is part of the name. Any other domain is
- * a plain Wazo host. Nothing when the login has no user or no domain.
+ * The login rule. A hosted-service login, <ext>@<slug><SERVICE.domainSuffix>,
+ * registers as <slug>-<ext> on that realm through the shared edge: line names
+ * must be unique across tenants, so the slug is part of the name. Any other
+ * domain is a plain Wazo host. Nothing when the login has no user or no domain.
  */
 export function resolveLogin(login: string): ResolvedLogin | undefined {
   const at = login.trim().lastIndexOf('@');
@@ -34,12 +34,12 @@ export function resolveLogin(login: string): ResolvedLogin | undefined {
   const user = login.trim().slice(0, at);
   const domain = login.trim().slice(at + 1);
   if (!user || !domain) return undefined;
-  const mosaic = domain.endsWith(MOSAIC_SUFFIX) && domain !== MOSAIC_EDGE;
-  const slug = domain.slice(0, -MOSAIC_SUFFIX.length).split('.')[0];
+  const hosted = Boolean(SERVICE.domainSuffix) && domain.endsWith(SERVICE.domainSuffix) && domain !== SERVICE.edge;
+  const slug = hosted ? domain.slice(0, -SERVICE.domainSuffix.length).split('.')[0] : '';
   return {
-    username: mosaic && slug ? `${slug}-${user}` : user,
+    username: hosted && slug ? `${slug}-${user}` : user,
     domain,
-    wsUrl: wazoWebSocketUrl(mosaic ? MOSAIC_EDGE : domain),
+    wsUrl: wazoWebSocketUrl(hosted ? SERVICE.edge : domain),
   };
 }
 
@@ -63,7 +63,7 @@ export function resolveAccount(form: AccountForm): SipAccount | undefined {
 /** Help text under the username: where the phone will register, or what a login looks like. */
 export function describeLogin(form: AccountForm): string {
   const account = resolveAccount({ ...form, password: 'x' });
-  if (!account) return 'Looks like 1004@company.mosaicvoice.net';
+  if (!account) return `Looks like ${BRAND.loginExample}`;
   return `Registers as ${account.username} on ${account.domain} via ${hostOf(account.wsUrl)}`;
 }
 

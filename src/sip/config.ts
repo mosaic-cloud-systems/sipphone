@@ -2,14 +2,14 @@
 // Vite builds these values into the page's JavaScript, so a SIP password
 // never belongs here: the user types it into the sign-in dialog.
 // With nothing set, the login rule in components/account.ts decides where the
-// phone connects from the username alone (1004@dave.mosaicvoice.net).
+// phone connects from the username alone (see src/brand.ts for the service).
 
 export interface PhoneConfig {
   /** Server override (a wss:// URL), or blank to follow the login rule. */
   wsUrl: string;
   /** SIP domain override, or blank to follow the login rule. */
   domain: string;
-  /** Prefilled username, e.g. 1004@dave.mosaicvoice.net. */
+  /** Prefilled username, e.g. 1004@dave.mosaicvoice.net or alice@wazo.example.com. */
   login: string;
   iceServers: RTCIceServer[];
   traceSip: boolean;
@@ -28,9 +28,6 @@ type EnvKey =
 export type Env = Partial<Record<EnvKey, string>>;
 
 const DEFAULT_STUN = 'stun:stun.l.google.com:19302';
-
-/** The Mosaic Voice edge: every Mosaic Voice softphone connects here. */
-export const MOSAIC_EDGE = 'sip.mosaicvoice.net';
 
 /** "https://wazo.example.com:443/path" -> "wazo.example.com" */
 export function hostOf(value: string): string {

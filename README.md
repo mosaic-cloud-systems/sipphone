@@ -1,8 +1,26 @@
 # Mosaic Voice phone
 
-A browser SIP phone for Mosaic Voice, usable against any Wazo PBX. It
-registers a line over a secure WebSocket (SIP.js) and makes and takes audio
-calls with WebRTC.
+An open-source browser SIP phone. It registers a line over a secure WebSocket
+(SIP.js) and makes and takes audio calls with WebRTC. Built for Mosaic Voice,
+it works against any Wazo PBX, and it is meant to be downloaded and rebranded:
+see **Brand it** below.
+
+MIT licensed (the Mosaic name and logo are not; see `LICENSE`).
+
+## Quick start
+
+Requires Node 20.19 or newer.
+
+```bash
+git clone https://github.com/mosaic-cloud-systems/sipphone.git
+cd sipphone
+npm install
+npm run dev                  # http://localhost:5173
+```
+
+Sign in as `user@your-wazo-host` with the line's SIP password, allow the
+microphone, and dial. For a Mosaic Voice account the username is
+`<extension>@<company>.mosaicvoice.net`.
 
 ## What works
 
@@ -17,7 +35,7 @@ calls with WebRTC.
 - Optional SIP trace: every SIP message logged to the browser console
 
 Not built yet: attended transfer, conferencing, recording, video, more than one
-call at a time, call history.
+call at a time, contacts, voicemail.
 
 ## Where it connects
 
@@ -38,9 +56,6 @@ and registers as `alice` there. For a setup where the WebSocket host and the
 realm differ, set the overrides in `.env.local` (see `.env.example`); there
 are no fields for them. The username is remembered in this browser; the
 password never is.
-
-To point the phone at a plain Wazo instead, type its host as the server, or
-set `VITE_WAZO_HOST` in `.env.local` so it is prefilled.
 
 ## Wazo setup
 
@@ -97,13 +112,13 @@ them.
 ```
 src/
   sip/SipClient.ts         SIP layer: one account, one call, on SIP.js's SessionManager
-  sip/config.ts            VITE_* settings and the Mosaic Voice defaults
+  sip/config.ts            VITE_* settings (overrides only)
   components/Phone.tsx     State and every call into SipClient; picks the screen
   components/Login.tsx     Sign-in page
   components/Dialer.tsx    Keypad and number entry when idle
   components/CallScreen.tsx Calling, incoming and in-call screens, DTMF keypad, transfer
   components/Keypad.tsx    The 12 keys, full or compact
-  components/Brand.tsx     Mosaic Voice lockup
+  components/Brand.tsx     Brand lockup (names from src/brand.ts)
   components/StatusPill.tsx Registration status
   components/icons.tsx     Inline SVG icons
   components/account.ts    Login form helpers and what is remembered
@@ -111,10 +126,27 @@ src/
   components/numberSize.ts Font size for the dialled number
   components/duration.ts   Call timer formatting
   components/recents.ts    Call history entries, row text, per-account storage
+  brand.ts                 Names, logo, login example, hosted-service rule
   styles.css               Design tokens from mosaic.site and all styles
   App.tsx, main.tsx        Layout frame and entry point
 public/mosaic-logo.png     The Mosaic cube, also the favicon
 ```
+
+## Brand it
+
+Everything a rebrand touches is in four places:
+
+| What | Where |
+|---|---|
+| Names, wordmark, logo path, login example, hosted-service rule | `src/brand.ts` |
+| The logo and favicon | `public/mosaic-logo.png` (also referenced in `index.html`) |
+| Page title | `index.html` |
+| Colours and fonts | the tokens at the top of `src/styles.css`, and the Google Fonts link in `index.html` |
+
+Set `SERVICE.domainSuffix` to `''` in `src/brand.ts` if you do not run a
+multi-tenant edge; every login is then plain `user@host`. Replace the Mosaic
+name and logo before you ship: they are trademarks and not part of the MIT
+licence.
 
 ## Design
 

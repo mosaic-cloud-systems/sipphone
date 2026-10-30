@@ -1,4 +1,4 @@
-# sipphone: the Mosaic Voice browser phone
+# sipphone: the Mosaic Voice browser phone (open source, MIT)
 
 React 18 + TypeScript + Vite, plain CSS (`src/styles.css`), SIP.js 0.21 over
 WSS. The Mosaic Voice phone; also used to test SIP and WebRTC against any Wazo
@@ -33,6 +33,9 @@ PBX. Read README.md for setup and scope. The design and mockup link are in
   `numberSize.ts` (dialled-number font size), `duration.ts` (call timer),
   `recents.ts` (call history entries, row text, per-account storage; the
   entry fields follow Wazo's CDR so a server list can replace it later).
+- `src/brand.ts` is the one place a rebrand edits: names, logo path, login
+  example, and the hosted service (edge host, domain suffix) the login rule
+  uses.
 - `src/styles.css` holds the design tokens copied from mosaic.site and every
   style. No UI library: Material UI was removed in the redesign.
 

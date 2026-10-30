@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Browser SIP phone (SIP.js over WSS) for testing against Wazo",
+  "description": "Mosaic Voice: an open-source browser SIP phone (SIP.js over WSS, WebRTC audio) for Wazo PBXs",
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
