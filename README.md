@@ -5,7 +5,9 @@ An open-source browser SIP phone. It registers a line over a secure WebSocket
 it works against any Wazo PBX, and it is meant to be downloaded and rebranded:
 see **Brand it** below.
 
-MIT licensed (the Mosaic name and logo are not; see `LICENSE`).
+MIT licensed. The Mosaic name, the Mosaic Voice name and the cube logo in
+`public/mosaic-logo.png` are trademarks of Mosaic Cloud Systems and are not
+covered by the licence: replace them when you ship your own build.
 
 ## Quick start
 
