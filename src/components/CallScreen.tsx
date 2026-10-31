@@ -32,7 +32,7 @@ interface CallScreenProps {
   onDismissError: () => void;
 }
 
-/** "200@wazo.example.com" -> "200 · wazo.example.com" */
+/** "200@pbx.example.com" -> "200 · pbx.example.com" */
 function splitUri(uri: string | undefined): string {
   if (!uri) return '';
   const at = uri.indexOf('@');

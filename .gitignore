@@ -3,7 +3,7 @@ dist/
 coverage/
 *.tsbuildinfo
 
-# Local settings: may hold your Wazo host and TURN credentials
+# Local settings: may hold your server host and TURN credentials
 .env
 .env.local
 .env.*.local
@@ -12,6 +12,3 @@ coverage/
 .vscode/
 .idea/
 npm-debug.log*
-
-# superpowers plan workspaces
-.superpowers/

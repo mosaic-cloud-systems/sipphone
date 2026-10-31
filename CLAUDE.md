@@ -1,9 +1,9 @@
 # sipphone: the Mosaic Voice browser phone (open source, MIT)
 
 React 18 + TypeScript + Vite, plain CSS (`src/styles.css`), SIP.js 0.21 over
-WSS. The Mosaic Voice phone; also used to test SIP and WebRTC against any Wazo
-PBX. Read README.md for setup and scope. The design and mockup link are in
-`docs/superpowers/specs/2026-10-29-mosaic-voice-redesign-design.md`.
+WSS. The Mosaic Voice phone, usable against any server that speaks SIP over
+WebSocket. Read README.md for setup and scope and `docs/design.md` for the
+design decisions.
 
 ## Commands
 
@@ -19,10 +19,10 @@ PBX. Read README.md for setup and scope. The design and mockup link are in
 - `src/sip/SipClient.ts` is the only file that touches SIP.js. It wraps
   `Web.SessionManager`, keeps one account and at most one call, and publishes a
   `PhoneState` through `subscribe()`. Add SIP features here, with a test in
-  `SipClient.test.ts` (it mocks SessionManager and plays Wazo's events).
-- `src/sip/config.ts` turns `VITE_*` settings into a `PhoneConfig`, defaulting
-  to the Mosaic Voice edge (`sip.mosaicvoice.net`). The env keys are declared
-  in `src/vite-env.d.ts`.
+  `SipClient.test.ts` (it mocks SessionManager and plays the server's events).
+- `src/sip/config.ts` turns `VITE_*` settings into a `PhoneConfig` of
+  overrides; blank means the login rule decides. The env keys are declared in
+  `src/vite-env.d.ts`.
 - `src/components/Phone.tsx` owns the state and every call into `SipClient`,
   and picks the screen. No SIP logic in the UI.
 - Screens are presentational: `Login.tsx`, `Dialer.tsx`, `CallScreen.tsx`
@@ -32,10 +32,10 @@ PBX. Read README.md for setup and scope. The design and mockup link are in
 - Pure helpers with tests: `account.ts` (login form, what is remembered),
   `numberSize.ts` (dialled-number font size), `duration.ts` (call timer),
   `recents.ts` (call history entries, row text, per-account storage; the
-  entry fields follow Wazo's CDR so a server list can replace it later).
+  entry fields follow a typical PBX call record so a server list can replace
+  it later).
 - `src/brand.ts` is the one place a rebrand edits: names, logo path, login
-  example, and the hosted service (edge host, domain suffix) the login rule
-  uses.
+  example, and the server side (edge host, domain suffix, WebSocket path).
 - `src/styles.css` holds the design tokens copied from mosaic.site and every
   style. No UI library: Material UI was removed in the redesign.
 
@@ -44,19 +44,22 @@ PBX. Read README.md for setup and scope. The design and mockup link are in
 - Never read the SIP password from env or save it: `VITE_*` values are built
   into the shipped JavaScript. It is typed into the sign-in dialog only.
 - After a rejected REGISTER the client stops instead of letting SessionManager
-  retry every few seconds, which would trip Wazo's fail2ban on a bad password.
-  Keep that behaviour.
-- Wazo specifics: WebSocket at `wss://<host>/api/asterisk/ws`; credentials are
-  the line's SIP username/password; the line needs Wazo's WebRTC settings.
-  On Mosaic Voice the login is `<ext>@<slug>.mosaicvoice.net`; `account.ts`
-  turns it into the shared edge `sip.mosaicvoice.net`, the realm, and the line
-  name `<slug>-<ext>` (the naming rule the Mosaic Voice API follows when it
-  creates lines). Any other domain is a plain Wazo host. Server and SIP domain
-  overrides exist only as `VITE_SIP_WS_URL` / `VITE_SIP_DOMAIN`; the login
-  page has no fields for them.
+  retry every few seconds, which would trip a server's lockout (fail2ban) on a
+  bad password. Keep that behaviour.
+- Sign-in: the login is `<ext>@<slug>.mosaicvoice.net`; `account.ts` turns it
+  into the shared edge `sip.mosaicvoice.net`, the realm, and the line name
+  `<slug>-<ext>` (the naming rule the Mosaic Voice API follows when it creates
+  lines). Any other domain is used as the server host, with the WebSocket path
+  from `SERVICE.wsPath`. Server and SIP domain overrides exist only as
+  `VITE_SIP_HOST` / `VITE_SIP_WS_URL` / `VITE_SIP_DOMAIN`; the login page has
+  no fields for them.
+- Developed and tested against Wazo (Asterisk). Keep the code free of
+  Wazo-specific names: the server side is described by `SERVICE` in
+  `src/brand.ts` and nothing else.
 
 ## Testing limits
 
 Unit tests cover the client's state handling and config, not real calls. A real
-call needs a WebRTC-enabled Wazo line and a browser with a microphone; say so
-when reporting results instead of claiming a feature works end to end.
+call needs a WebRTC-enabled line on a real server and a browser with a
+microphone; say so when reporting results instead of claiming a feature works
+end to end.

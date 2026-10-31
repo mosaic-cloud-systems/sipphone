@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Mosaic Voice: an open-source browser SIP phone (SIP.js over WSS, WebRTC audio) for Wazo PBXs",
+  "description": "Mosaic Voice: an open-source browser SIP phone (SIP.js over WSS, WebRTC audio)",
   "license": "MIT",
   "scripts": {
     "dev": "vite",

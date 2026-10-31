@@ -2,8 +2,9 @@
 
 An open-source browser SIP phone. It registers a line over a secure WebSocket
 (SIP.js) and makes and takes audio calls with WebRTC. Built for Mosaic Voice,
-it works against any Wazo PBX, and it is meant to be downloaded and rebranded:
-see **Brand it** below.
+it works against any server that speaks SIP over WebSocket, and it is meant to
+be downloaded and rebranded: see **Brand it** below. Developed and tested
+against Wazo (Asterisk); reports from other servers are welcome.
 
 MIT licensed. The Mosaic name, the Mosaic Voice name and the cube logo in
 `public/mosaic-logo.png` are trademarks of Mosaic Cloud Systems and are not
@@ -20,7 +21,7 @@ npm install
 npm run dev                  # http://localhost:5173
 ```
 
-Sign in as `user@your-wazo-host` with the line's SIP password, allow the
+Sign in as `user@your-server` with the line's SIP password, allow the
 microphone, and dial. For a Mosaic Voice account the username is
 `<extension>@<company>.mosaicvoice.net`.
 
@@ -53,25 +54,29 @@ softphone. The username is `1004@dave.mosaicvoice.net`: the extension, then the
 customer's SIP realm. The phone works the rest out itself: it connects to the
 shared edge `sip.mosaicvoice.net` and registers as `dave-1004` (line names must
 be unique across customers, so the realm's first label is part of the name).
-Any other domain, say `alice@wazo.example.com`, is treated as a plain Wazo host
-and registers as `alice` there. For a setup where the WebSocket host and the
-realm differ, set the overrides in `.env.local` (see `.env.example`); there
-are no fields for them. The username is remembered in this browser; the
-password never is.
+Any other domain, say `alice@pbx.example.com`, is used as the server itself:
+the phone connects to `wss://pbx.example.com/api/asterisk/ws` and registers as
+`alice`. That path is Wazo's; change `SERVICE.wsPath` in `src/brand.ts` for a
+server on another path, or set the full URL in `.env.local` (see
+`.env.example`, plain Asterisk is `wss://host:8089/ws`). For a setup where the
+WebSocket host and the realm differ, the same file has an override; there are
+no fields for these on the login page. The username is remembered in this
+browser; the password never is.
 
-## Wazo setup
+## Server setup
 
-- **WebSocket:** Wazo serves SIP over WebSocket at
-  `wss://<your-wazo>/api/asterisk/ws`, on by default.
-- **Credentials:** the password is the *line's* SIP password (Wazo line, SIP
-  settings), not the Wazo user's portal login. The username typed is
-  `<ext>@<realm>`; see the login rule above for what the line is called.
-- **WebRTC line:** the line must use Wazo's WebRTC settings (recent Wazo
-  versions ship a `webrtc` SIP template; check your version's docs). A line set
-  up for a desk phone will register but fail on media. DTMF needs `dtmf_mode`
-  `rfc4733` or `auto` on the endpoint.
+- **WebSocket:** the server must accept SIP over a secure WebSocket. Wazo has
+  it on by default at `/api/asterisk/ws`; plain Asterisk needs the HTTP server
+  and `transport=wss` enabled.
+- **Credentials:** the password is the *line's* SIP password, not a portal
+  login. The username typed is `<ext>@<realm>`; see the login rule above for
+  what the line is called.
+- **WebRTC endpoint:** the line must be set up for WebRTC (on Asterisk,
+  `webrtc=yes` on the PJSIP endpoint; Wazo ships a `webrtc` template). A line
+  set up for a desk phone will register but fail on media. DTMF needs
+  `dtmf_mode` `rfc4733` or `auto`.
 - **Certificate:** the browser must trust the server's TLS certificate. With a
-  self-signed certificate, open `https://<your-wazo>/` once and accept it, or
+  self-signed certificate, open `https://<your-server>/` once and accept it, or
   the WebSocket fails without a useful error.
 
 ## Run it
@@ -94,7 +99,7 @@ them.
 
 | Symptom | Likely cause |
 |---|---|
-| "Registration rejected: 401/403" | The username or password was not accepted; the server does not say which. The phone stops instead of retrying, so a bad password doesn't trip Wazo's fail2ban. |
+| "Registration rejected: 401/403" | The username or password was not accepted; the server does not say which. The phone stops instead of retrying, so a bad password doesn't trip the server's lockout. |
 | Stuck on "Connecting…" / WebSocket error | Wrong server, or the browser doesn't trust its certificate. |
 | Call connects but no audio, or one-way audio | ICE/NAT. Check the line's WebRTC settings; set `VITE_ICE_SERVERS` (and a TURN server if both ends are behind NAT). |
 | Keypad tones ignored by an IVR | The endpoint's `dtmf_mode` is not `rfc4733` or `auto`. |
@@ -128,7 +133,7 @@ src/
   components/numberSize.ts Font size for the dialled number
   components/duration.ts   Call timer formatting
   components/recents.ts    Call history entries, row text, per-account storage
-  brand.ts                 Names, logo, login example, hosted-service rule
+  brand.ts                 Names, logo, login example, server side (edge, suffix, WebSocket path)
   styles.css               Design tokens from mosaic.site and all styles
   App.tsx, main.tsx        Layout frame and entry point
 public/mosaic-logo.png     The Mosaic cube, also the favicon
@@ -140,7 +145,7 @@ Everything a rebrand touches is in four places:
 
 | What | Where |
 |---|---|
-| Names, wordmark, logo path, login example, hosted-service rule | `src/brand.ts` |
+| Names, wordmark, logo path, login example, server side (edge, domain suffix, WebSocket path) | `src/brand.ts` |
 | The logo and favicon | `public/mosaic-logo.png` (also referenced in `index.html`) |
 | Page title | `index.html` |
 | Colours and fonts | the tokens at the top of `src/styles.css`, and the Google Fonts link in `index.html` |
@@ -154,5 +159,5 @@ licence.
 
 The look follows mosaic.site: Inter for text, JetBrains Mono for addresses
 and the timer, Playfair Display italic for "voice", a white ground with the
-site's neutral palette and blue accent. The written design and mockup link
-are in `docs/superpowers/specs/2026-10-29-mosaic-voice-redesign-design.md`.
+site's neutral palette and blue accent. The design decisions are written up
+in `docs/design.md`.

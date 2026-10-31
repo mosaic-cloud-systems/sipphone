@@ -2,7 +2,7 @@
 
 // The settings read by src/sip/config.ts (documented in .env.example).
 interface ImportMetaEnv {
-  readonly VITE_WAZO_HOST?: string;
+  readonly VITE_SIP_HOST?: string;
   readonly VITE_SIP_WS_URL?: string;
   readonly VITE_SIP_DOMAIN?: string;
   readonly VITE_SIP_USERNAME?: string;

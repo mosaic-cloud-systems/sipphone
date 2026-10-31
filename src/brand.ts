@@ -16,12 +16,19 @@ export const BRAND = {
 };
 
 /**
- * The hosted service behind the login rule (see components/account.ts): a
- * login of <ext>@<slug><domainSuffix> connects to the shared edge and
- * registers as <slug>-<ext>. Leave domainSuffix empty to turn the rule off,
- * so every login is user@host against that host.
+ * The server side: the hosted service behind the login rule (see
+ * components/account.ts) and the WebSocket path. A login of
+ * <ext>@<slug><domainSuffix> connects to the shared edge and registers as
+ * <slug>-<ext>. Leave domainSuffix empty to turn the rule off, so every login
+ * is user@host against that host.
  */
 export const SERVICE = {
   edge: 'sip.mosaicvoice.net',
   domainSuffix: '.mosaicvoice.net',
+  /**
+   * Where the server accepts SIP over WebSocket, added to a bare host. This
+   * is the Asterisk-behind-Wazo path; plain Asterisk uses /ws (port 8089),
+   * FreeSWITCH port 7443. A full ws(s):// URL in VITE_SIP_WS_URL bypasses it.
+   */
+  wsPath: '/api/asterisk/ws',
 };

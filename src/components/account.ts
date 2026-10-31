@@ -1,10 +1,10 @@
 // The sign-in form, the login rule, and what is remembered. The password is never saved.
-import { wazoWebSocketUrl, type PhoneConfig } from '../sip/config';
+import { webSocketUrl, type PhoneConfig } from '../sip/config';
 import type { SipAccount } from '../sip/SipClient';
 import { BRAND, SERVICE } from '../brand';
 
 export interface AccountForm {
-  /** "1004@dave.mosaicvoice.net", or "alice@wazo.example.com" for a plain Wazo. */
+  /** "1004@dave.mosaicvoice.net", or "alice@pbx.example.com" for any other server. */
   login: string;
   password: string;
   /** Override from the env file: server host or ws(s):// URL. Blank follows the login rule. */
@@ -26,7 +26,7 @@ export interface ResolvedLogin {
  * The login rule. A hosted-service login, <ext>@<slug><SERVICE.domainSuffix>,
  * registers as <slug>-<ext> on that realm through the shared edge: line names
  * must be unique across tenants, so the slug is part of the name. Any other
- * domain is a plain Wazo host. Nothing when the login has no user or no domain.
+ * domain is used as the host itself. Nothing when the login has no user or no domain.
  */
 export function resolveLogin(login: string): ResolvedLogin | undefined {
   const at = login.trim().lastIndexOf('@');
@@ -39,7 +39,7 @@ export function resolveLogin(login: string): ResolvedLogin | undefined {
   return {
     username: hosted && slug ? `${slug}-${user}` : user,
     domain,
-    wsUrl: wazoWebSocketUrl(hosted ? SERVICE.edge : domain),
+    wsUrl: webSocketUrl(hosted ? SERVICE.edge : domain),
   };
 }
 
@@ -55,7 +55,7 @@ export function resolveAccount(form: AccountForm): SipAccount | undefined {
   return {
     username: resolved.username,
     domain: form.domain.trim() || resolved.domain,
-    wsUrl: form.wsUrl.trim() ? wazoWebSocketUrl(form.wsUrl) : resolved.wsUrl,
+    wsUrl: form.wsUrl.trim() ? webSocketUrl(form.wsUrl) : resolved.wsUrl,
     password: form.password,
   };
 }

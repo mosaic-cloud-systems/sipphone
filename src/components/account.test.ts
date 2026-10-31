@@ -10,11 +10,11 @@ describe('resolveLogin', () => {
     });
   });
 
-  it('treats any other domain as a plain Wazo host', () => {
-    expect(resolveLogin('alice@wazo.example.com')).toEqual({
+  it('uses any other domain as the server host itself', () => {
+    expect(resolveLogin('alice@pbx.example.com')).toEqual({
       username: 'alice',
-      domain: 'wazo.example.com',
-      wsUrl: 'wss://wazo.example.com/api/asterisk/ws',
+      domain: 'pbx.example.com',
+      wsUrl: 'wss://pbx.example.com/api/asterisk/ws',
     });
   });
 

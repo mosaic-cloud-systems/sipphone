@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Session } from 'sip.js';
 
 // A stand-in for SIP.js's SessionManager that records what the client asks of it
-// and lets each test play the events Wazo would send.
+// and lets each test play the events the server would send.
 const fake = vi.hoisted(() => {
   class FakeSessionManager {
     static last: FakeSessionManager;
@@ -48,8 +48,8 @@ vi.mock('sip.js', () => ({ Web: { SessionManager: fake.FakeSessionManager } }));
 import { SipClient } from './SipClient';
 
 const account = {
-  wsUrl: 'wss://wazo.example.com/api/asterisk/ws',
-  domain: 'wazo.example.com',
+  wsUrl: 'wss://pbx.example.com/api/asterisk/ws',
+  domain: 'pbx.example.com',
   username: 'line42',
   password: 'secret',
 };
@@ -59,7 +59,7 @@ function fakeSession(displayName: string, user: string): Session {
     reject: vi.fn(async () => {}),
     remoteIdentity: {
       displayName,
-      uri: { user, host: 'wazo.example.com', toString: () => `sip:${user}@wazo.example.com` },
+      uri: { user, host: 'pbx.example.com', toString: () => `sip:${user}@pbx.example.com` },
     },
   } as unknown as Session;
 }
@@ -73,9 +73,9 @@ describe('SipClient', () => {
     await client.connect(account);
   });
 
-  it('registers the line with Wazo over the WebSocket', () => {
+  it('registers the line over the WebSocket', () => {
     expect(manager().server).toBe(account.wsUrl);
-    expect(manager().options.aor).toBe('sip:line42@wazo.example.com');
+    expect(manager().options.aor).toBe('sip:line42@pbx.example.com');
     expect(manager().options.userAgentOptions).toMatchObject({
       authorizationUsername: 'line42',
       authorizationPassword: 'secret',
@@ -118,7 +118,7 @@ describe('SipClient', () => {
 
   it('dials numbers and extensions on the account domain', async () => {
     await client.call('+1 (555) 123-4567');
-    expect(manager().call).toHaveBeenLastCalledWith('sip:+15551234567@wazo.example.com');
+    expect(manager().call).toHaveBeenLastCalledWith('sip:+15551234567@pbx.example.com');
     await client.call('sip:200@other.example.com');
     expect(manager().call).toHaveBeenLastCalledWith('sip:200@other.example.com');
   });
@@ -130,7 +130,7 @@ describe('SipClient', () => {
     expect(client.getState().call).toMatchObject({
       status: 'incoming',
       remote: 'Alice',
-      remoteUri: '200@wazo.example.com',
+      remoteUri: '200@pbx.example.com',
     });
 
     await client.answer();
@@ -180,7 +180,7 @@ describe('SipClient', () => {
 
   it('reports the user part as the name when the caller has no display name', () => {
     manager().delegate.onCallCreated(fakeSession('', '300'));
-    expect(client.getState().call).toMatchObject({ remote: '300', remoteUri: '300@wazo.example.com' });
+    expect(client.getState().call).toMatchObject({ remote: '300', remoteUri: '300@pbx.example.com' });
   });
 
   it('mutes, holds, sends DTMF and transfers the current call', async () => {
@@ -205,7 +205,7 @@ describe('SipClient', () => {
     expect(manager().options.sendDTMFUsingSessionDescriptionHandler).toBe(true);
 
     await client.transfer('201');
-    expect(manager().transfer).toHaveBeenCalledWith(session, 'sip:201@wazo.example.com');
+    expect(manager().transfer).toHaveBeenCalledWith(session, 'sip:201@pbx.example.com');
   });
 
   it('ignores events from a manager it has already replaced', async () => {

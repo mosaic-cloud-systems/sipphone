@@ -103,7 +103,7 @@ export class SipClient {
       await manager.register({
         requestDelegate: {
           // SessionManager re-sends REGISTER every few seconds after a rejection.
-          // With a wrong password that hammers Wazo (and can trip its fail2ban),
+          // With a wrong password that hammers the server (and can trip its lockout),
           // so stop and let the user fix the credentials.
           onReject: (response) => {
             const { statusCode, reasonPhrase } = response.message;

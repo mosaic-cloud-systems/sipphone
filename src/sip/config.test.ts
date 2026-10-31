@@ -1,35 +1,35 @@
 import { describe, expect, it } from 'vitest';
-import { hostOf, loadConfig, parseIceServers, wazoWebSocketUrl } from './config';
+import { hostOf, loadConfig, parseIceServers, webSocketUrl } from './config';
 
-describe('wazoWebSocketUrl', () => {
-  it('builds the Wazo WebSocket URL from a host', () => {
-    expect(wazoWebSocketUrl('wazo.example.com')).toBe('wss://wazo.example.com/api/asterisk/ws');
+describe('webSocketUrl', () => {
+  it('builds the WebSocket URL from a host with the service path', () => {
+    expect(webSocketUrl('pbx.example.com')).toBe('wss://pbx.example.com/api/asterisk/ws');
   });
 
   it('accepts an https URL and keeps a port', () => {
-    expect(wazoWebSocketUrl('https://wazo.example.com:8443/')).toBe(
-      'wss://wazo.example.com:8443/api/asterisk/ws',
+    expect(webSocketUrl('https://pbx.example.com:8443/')).toBe(
+      'wss://pbx.example.com:8443/api/asterisk/ws',
     );
   });
 
   it('returns a ws:// or wss:// URL with a path unchanged', () => {
-    expect(wazoWebSocketUrl('wss://pbx.example.com/ws')).toBe('wss://pbx.example.com/ws');
+    expect(webSocketUrl('wss://pbx.example.com/ws')).toBe('wss://pbx.example.com/ws');
   });
 
-  it('adds the Wazo path to a wss:// URL that has none', () => {
+  it('adds the service path to a wss:// URL that has none', () => {
     // The edge answers 404 at "/" and the browser closes the socket with code 1006.
-    expect(wazoWebSocketUrl('wss://sip.mosaicvoice.net')).toBe('wss://sip.mosaicvoice.net/api/asterisk/ws');
-    expect(wazoWebSocketUrl('wss://sip.mosaicvoice.net/')).toBe('wss://sip.mosaicvoice.net/api/asterisk/ws');
+    expect(webSocketUrl('wss://sip.mosaicvoice.net')).toBe('wss://sip.mosaicvoice.net/api/asterisk/ws');
+    expect(webSocketUrl('wss://sip.mosaicvoice.net/')).toBe('wss://sip.mosaicvoice.net/api/asterisk/ws');
   });
 
   it('returns empty for an empty host', () => {
-    expect(wazoWebSocketUrl('  ')).toBe('');
+    expect(webSocketUrl('  ')).toBe('');
   });
 });
 
 describe('hostOf', () => {
   it('strips scheme, port and path', () => {
-    expect(hostOf('wss://wazo.example.com:443/api/asterisk/ws')).toBe('wazo.example.com');
+    expect(hostOf('wss://pbx.example.com:443/api/asterisk/ws')).toBe('pbx.example.com');
   });
 });
 
@@ -51,11 +51,11 @@ describe('parseIceServers', () => {
 });
 
 describe('loadConfig', () => {
-  it('turns VITE_WAZO_HOST into server and domain overrides', () => {
-    const config = loadConfig({ VITE_WAZO_HOST: 'wazo.example.com', VITE_SIP_TRACE: 'true' });
+  it('turns VITE_SIP_HOST into server and domain overrides', () => {
+    const config = loadConfig({ VITE_SIP_HOST: 'pbx.example.com', VITE_SIP_TRACE: 'true' });
     expect(config).toMatchObject({
-      wsUrl: 'wss://wazo.example.com/api/asterisk/ws',
-      domain: 'wazo.example.com',
+      wsUrl: 'wss://pbx.example.com/api/asterisk/ws',
+      domain: 'pbx.example.com',
       login: '',
       traceSip: true,
     });
@@ -63,7 +63,7 @@ describe('loadConfig', () => {
 
   it('lets explicit settings override the host', () => {
     const config = loadConfig({
-      VITE_WAZO_HOST: 'wazo.example.com',
+      VITE_SIP_HOST: 'pbx.example.com',
       VITE_SIP_WS_URL: 'wss://edge.example.com/ws',
       VITE_SIP_DOMAIN: 'sip.example.com',
       VITE_SIP_USERNAME: 'abc123@sip.example.com',

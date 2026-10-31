@@ -1,5 +1,5 @@
 // Recent calls: how a finished call becomes a list entry, and the list rules.
-// Field names follow Wazo's CDR (direction, name, start, answered, duration)
+// Field names follow a typical PBX call record (direction, name, start, answered, duration)
 // so a server-backed list can replace this one later.
 import type { CallInfo } from '../sip/SipClient';
 import { formatDuration } from './duration';
